@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+   <children>
+      <Button fx:id="applyButton" layoutX="596.0" layoutY="561.0" mnemonicParsing="false" onMouseClicked="#checkText" text="Sprawdź poprawność równań" textAlignment="CENTER" />
+      <Button fx:id="fileButton" layoutX="14.0" layoutY="561.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#parseFile" text="Wczytaj algebrę z pliku" textAlignment="CENTER" textOverrun="CENTER_WORD_ELLIPSIS">
+
+      </Button>
+      <Text layoutX="138.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Witaj w aplikacji, równania podaj w postaci notacji polskiej, poszczególne elementy oddziel spacją" textAlignment="CENTER" wrappingWidth="522.2574157714844">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Text>
+      <Text layoutX="284.0" layoutY="125.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Wprowadź lewą stronę równania">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Text>
+      <TextField fx:id="leftSiteText" layoutX="200.0" layoutY="200.0" prefHeight="25.0" prefWidth="400.0" />
+      <Text layoutX="280.0" layoutY="275.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Wprowadź prawą stronę równania">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Text>
+      <TextField fx:id="rightSiteText" layoutX="200.0" layoutY="350.0" prefHeight="25.0" prefWidth="400.0" />
+      <Text fx:id="checkResultText" fill="#29c44d" layoutX="200.0" layoutY="425.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="400.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Text>
+      <Button fx:id="showButton" layoutX="181.0" layoutY="561.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#showReadAlgebra" text="Pokaż algebrę" textAlignment="CENTER" textOverrun="CENTER_WORD_ELLIPSIS" />
+   </children>
+</Pane>
