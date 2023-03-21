@@ -18,12 +18,18 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Controller {
 
     private Algebra algebra = new Algebra();
+    private List<EquationTable> equationLeft=new ArrayList<>();
+    private List<EquationTable> equationRight=new ArrayList<>();
 
+    private CheckEquationCorrectnessReturn left;
+    private CheckEquationCorrectnessReturn right;
     @FXML
     TextField leftSiteText;
     @FXML
@@ -86,15 +92,36 @@ public class Controller {
             checkResultText.setText("Nie podałeś równania!");
         else
         {
-            ls = ParseFunctions.checkEquationCorrectness(algebra, ls);
-            rs = ParseFunctions.checkEquationCorrectness(algebra, rs);
-            checkResultText.setText("Lewe równanie: " + ls + "\nPrawe równanie: " + rs);
+            left = ParseFunctions.checkEquationCorrectness(algebra, ls);
+            right = ParseFunctions.checkEquationCorrectness(algebra, rs);
+            checkResultText.setText("Lewe równanie: " + left.message + "\nPrawe równanie: " + right.message);
         }
 
 
     }
-
     public void showReadAlgebra() {
         algebra.showAlgebraFile();
+    }
+
+    public void CNFreduction() {
+        //System.out.println(left.equations);
+        //System.out.println(right.equations);
+        if (!left.isCorrect || !right.isCorrect)
+            checkResultText.setText("Podaj poprawne równania zanim przejdzesz do redukcji!");
+        else
+        {
+            equationLeft=ParseFunctions.getEquationTable(left.equations,algebra);
+            ParseFunctions.w=equationLeft.size();
+            equationRight=ParseFunctions.getEquationTable(right.equations,algebra);
+            for(int i=0;i<equationLeft.size();i++)
+            {
+                System.out.println(equationLeft.get(i).getOpName()+' '+equationLeft.get(i).getVariables());
+            }
+            for(int i=0;i<equationRight.size();i++)
+            {
+                System.out.println(equationRight.get(i).getOpName()+' '+equationRight.get(i).getVariables());
+            }
+
+        }
     }
 }

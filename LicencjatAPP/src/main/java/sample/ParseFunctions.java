@@ -6,6 +6,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class ParseFunctions {
+    public static int w=1;
 
     public static int codeNumber(String value, int cardinality) {
         int res = 0;
@@ -28,7 +29,7 @@ public class ParseFunctions {
         return res.reverse().toString();
     }
 
-    public static String checkEquationCorrectness(Algebra algebra, String equation) {
+    public static CheckEquationCorrectnessReturn checkEquationCorrectness(Algebra algebra, String equation) {
         EquationSymbols symbol;
         Queue<String> queue = new PriorityQueue<String>();
         //String[] equationTable = equation.split(" ");//dzielimy równanie po spacji do tablicy
@@ -67,7 +68,7 @@ public class ParseFunctions {
                         symbol = EquationSymbols.variable;//jednoliterowy string który nie jest operatorem jest zmienną
                         break;
                     } else if ((c >= 'a' && c <= 'z') || (c > 'A' && c <= 'Z')) {
-                        return "Błędne równanie: Niedozwolona nazwa zmiennej";//conajmiej dwuliterowy string np 3c lub c3 jeżeli taki string nie został
+                        return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",equationTable,false);
                         // złapany jako operator to jest niewłaściwym symbolem w równaniu
                     }
                 }
@@ -76,7 +77,7 @@ public class ParseFunctions {
             if (symbol == EquationSymbols.empty) {//symbol nie jest zmienną sprawdzamy czy jest stałą
                 int a = Integer.parseInt(s);
                 if (a >= algebra.getCardinality())
-                    return "Błędne równanie: Stała poza zakresem dziedziny"; //liczba nie należy do dziedziny algebty
+                    return new CheckEquationCorrectnessReturn("Błędne równanie: Stała poza zakresem dziedziny",equationTable,false);
                 else
                     symbol = EquationSymbols.constant; //symbol jest stałą liczbową
             }
@@ -88,7 +89,8 @@ public class ParseFunctions {
                 for (int j = 0; j < algebra.getOperations().get(opIndex).getArity(); j++) //posiadamy symbol ściągamy odpowiednią liczbe symboli ze stosu
                 {
                     if (queue.isEmpty())
-                        return "Błędne równanie: Pusty stos"; //mamy na mało symboli na stosie czyli równanie złe
+
+                        return new CheckEquationCorrectnessReturn("Błędne równanie: Pusty stos",equationTable,false);//mamy na mało symboli na stosie czyli równanie złe
                     else {
                         queue.remove(); //ściągamy symbole, nie potrzebujemy ich znać bo tulko sprawdzamy składnie
                     }
@@ -98,7 +100,51 @@ public class ParseFunctions {
             }
         }
         if(queue.size() > 1) //na koniec w stosie powinien zostać tylko jeden symbol
-            return "Błędne równanie: nadmiarowa liczba zmiennych";
-        return "Równanie poprawne";
+            return new CheckEquationCorrectnessReturn("Błędne równanie: nadmiarowa liczba zmiennych",equationTable,false);
+        return new CheckEquationCorrectnessReturn( "Równanie poprawne",equationTable,true);
+    }
+    public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra)
+    {
+        List<EquationTable> res=new ArrayList<>();
+
+        int index=-1;
+        boolean opFind;
+        String s;
+        for(int i=0;i<eq.size();i++)
+        {
+            opFind=false;
+            s=eq.get(i);
+            for (int j = 0; j < algebra.getOperations().size(); j++) {
+                if (s.equals(algebra.getOperations().get(j).getOpName())) {
+                    if(index==-1)
+                    {
+
+                        index++;
+                        res.add(new EquationTable());
+                        res.get(index).setOpName(s);
+                        res.get(index).setArity(algebra.getOperations().get(j).getArity());
+                    }
+                    else {
+                        res.get(index).getVariables().add("w"+w);
+                        w++;
+                        index++;
+                        res.add(new EquationTable());
+                        res.get(index).setArity(algebra.getOperations().get(j).getArity());
+                        res.get(index).setOpName(s);
+                    }
+
+                    opFind=true;
+                    break;
+                }
+            }
+            if(!opFind)
+            {
+                while(res.get(index).getVariables().size()==res.get(index).getArity())
+                    index--;
+                res.get(index).getVariables().add(s);
+            }
+
+        }
+        return res;
     }
 }

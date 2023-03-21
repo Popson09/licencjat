@@ -5,7 +5,17 @@ import java.util.List;
 
 public class EquationTable {
     private String opName;
-    private List<Integer> variables;
+    private List<String> variables;
+    private int arity;
+    public int getArity() {
+        return arity;
+    }
+
+    public void setArity(int arity) {
+        this.arity = arity;
+    }
+
+
     EquationTable()
     {
         this.opName="";
@@ -20,11 +30,11 @@ public class EquationTable {
         this.opName = opName;
     }
 
-    public List<Integer> getVariables() {
+    public List<String> getVariables() {
         return variables;
     }
 
-    public void setVariables(List<Integer> variables) {
+    public void setVariables(List<String> variables) {
         this.variables = variables;
     }
     public void clear()
