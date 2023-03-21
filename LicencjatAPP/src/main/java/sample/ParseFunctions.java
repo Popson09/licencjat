@@ -125,7 +125,10 @@ public class ParseFunctions {
                         res.get(index).setArity(algebra.getOperations().get(j).getArity());
                     }
                     else {
-                        res.get(index).getVariables().add("w"+w);
+                        int a=index;
+                        while(res.get(a).getVariables().size()==res.get(a).getArity())
+                            a--;
+                        res.get(a).getVariables().add("w"+w);
                         w++;
                         index++;
                         res.add(new EquationTable());
