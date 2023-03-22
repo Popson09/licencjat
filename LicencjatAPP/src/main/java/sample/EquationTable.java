@@ -7,19 +7,23 @@ public class EquationTable {
     private String opName;
     private List<String> variables;
     private int arity;
-    public int getArity() {
-        return arity;
+    private String result;
+
+
+
+    EquationTable( int w) {
+        this.opName = "";
+        this.variables = new ArrayList<>();
+        this.arity = 0;
+        this.result = "w"+w;
     }
 
-    public void setArity(int arity) {
-        this.arity = arity;
+    public String getResult() {
+        return result;
     }
 
-
-    EquationTable()
-    {
-        this.opName="";
-        this.variables=new ArrayList<>();
+    public void setResult(String result) {
+        this.result = result;
     }
 
     public String getOpName() {
@@ -37,9 +41,18 @@ public class EquationTable {
     public void setVariables(List<String> variables) {
         this.variables = variables;
     }
+    public int getArity() {
+        return arity;
+    }
+
+    public void setArity(int arity) {
+        this.arity = arity;
+    }
     public void clear()
     {
         this.opName="";
         this.variables.clear();
+        this.arity=0;
+        this.result="";
     }
 }

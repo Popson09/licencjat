@@ -6,7 +6,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class ParseFunctions {
-    public static int w=1;
+
 
     public static int codeNumber(String value, int cardinality) {
         int res = 0;
@@ -103,10 +103,9 @@ public class ParseFunctions {
             return new CheckEquationCorrectnessReturn("Błędne równanie: nadmiarowa liczba zmiennych",equationTable,false);
         return new CheckEquationCorrectnessReturn( "Równanie poprawne",equationTable,true);
     }
-    public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra)
+    public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w)
     {
         List<EquationTable> res=new ArrayList<>();
-
         int index=-1;
         boolean opFind;
         String s;
@@ -120,7 +119,8 @@ public class ParseFunctions {
                     {
 
                         index++;
-                        res.add(new EquationTable());
+                        res.add(new EquationTable(w));
+                        w++;
                         res.get(index).setOpName(s);
                         res.get(index).setArity(algebra.getOperations().get(j).getArity());
                     }
@@ -129,9 +129,10 @@ public class ParseFunctions {
                         while(res.get(a).getVariables().size()==res.get(a).getArity())
                             a--;
                         res.get(a).getVariables().add("w"+w);
+                        res.add(new EquationTable(w));
                         w++;
                         index++;
-                        res.add(new EquationTable());
+
                         res.get(index).setArity(algebra.getOperations().get(j).getArity());
                         res.get(index).setOpName(s);
                     }

@@ -110,16 +110,16 @@ public class Controller {
             checkResultText.setText("Podaj poprawne równania zanim przejdzesz do redukcji!");
         else
         {
-            equationLeft=ParseFunctions.getEquationTable(left.equations,algebra);
-            ParseFunctions.w=equationLeft.size();
-            equationRight=ParseFunctions.getEquationTable(right.equations,algebra);
+
+            equationLeft=ParseFunctions.getEquationTable(left.equations,algebra,0);
+            equationRight=ParseFunctions.getEquationTable(right.equations,algebra,equationLeft.size());
             for(int i=0;i<equationLeft.size();i++)
             {
-                System.out.println(equationLeft.get(i).getOpName()+' '+equationLeft.get(i).getVariables());
+                System.out.println(equationLeft.get(i).getOpName()+' '+equationLeft.get(i).getVariables()+' '+equationLeft.get(i).getResult());
             }
-            for(int i=0;i<equationRight.size();i++)
-            {
-                System.out.println(equationRight.get(i).getOpName()+' '+equationRight.get(i).getVariables());
+            System.out.println("-------------------------");
+            for (EquationTable equationTable : equationRight) {
+                System.out.println(equationTable.getOpName() + ' ' + equationTable.getVariables() + ' ' + equationTable.getResult());
             }
 
         }
