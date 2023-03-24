@@ -64,10 +64,10 @@ public class ParseFunctions {
             if (symbol == EquationSymbols.empty) { //symbol nie jest operacją sprawdzamy czy jest zmienną
                 for (int j = 0; j < s.length(); j++) {
                     char c = s.charAt(j);
-                    if (((c >= 'a' && c <= 'z') || (c > 'A' && c <= 'Z')) && s.length() == 1) {
+                    if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && s.length() == 1) {
                         symbol = EquationSymbols.variable;//jednoliterowy string który nie jest operatorem jest zmienną
                         break;
-                    } else if ((c >= 'a' && c <= 'z') || (c > 'A' && c <= 'Z')) {
+                    } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
                         return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",equationTable,false);
                         // złapany jako operator to jest niewłaściwym symbolem w równaniu
                     }
@@ -150,5 +150,82 @@ public class ParseFunctions {
 
         }
         return res;
+    }
+    public static String getOnefromAll(Algebra algebra,String s) //funkcja zapewniająca dokładnie 1 wystąpienie zmiennje
+    {
+        String CNF_form="";
+        for(int z=0;z< algebra.getCardinality();z++) //długi nawias np (x1 ||x2 ||x3) zapeniający conajmniej 1
+        {
+            if(z==0)
+                CNF_form+="(";
+            CNF_form=CNF_form+s+z;
+            if(z<algebra.getCardinality()-1)
+                CNF_form+=" ∨ ";
+            else
+                CNF_form+=")^";
+        }
+        for(int z=0;z< algebra.getCardinality();z++) //nawiasy (!x1 || !x2)&&(!x1 || !x3)&&(!x2 || !x3) zapewniajace conajwyżej 1
+        {
+            for(int q=0;q< algebra.getCardinality();q++)
+            {
+                if(z!=q)
+                    CNF_form=CNF_form+"(¬"+s+z+" ∨ "+'¬'+s+q+")^";
+            }
+        }
+        return CNF_form;
+    }
+    public static String equationToCNF (List<EquationTable> left,List<EquationTable> right, Algebra algebra)
+    {
+        List<Character> usedVariables=new ArrayList<>();
+        String CNF_form="";
+        for(int i=0;i< left.size();i++)
+        {
+            EquationTable row=left.get(i);
+            String code="";
+            CNF_form+=getOnefromAll(algebra,row.getResult());
+
+            for(int j=0;j<row.getVariables().size();j++)
+            {
+
+                String s=row.getVariables().get(j);
+                char c = s.charAt(0);
+                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                {
+                    code+='_';
+                    if((usedVariables.isEmpty()&&c=='w'&&s.length()==1)) //warunek gdyby pierwszy znak był zarezerwowany dla wyniku
+                    {
+                        usedVariables.add(c);
+                        CNF_form=CNF_form+getOnefromAll(algebra,s);
+                    }
+                    else if((usedVariables.isEmpty()&&c!='w'))
+                    {
+                        usedVariables.add(c);
+                        CNF_form=CNF_form+getOnefromAll(algebra,s);
+                    }
+                    else if(s.length()<2)
+                    {
+                        boolean flag=false;
+                        for (Character usedVariable : usedVariables) {
+                            if (c == usedVariable) {
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if(!flag)
+                        {
+                            usedVariables.add(c);
+                            CNF_form=CNF_form+getOnefromAll(algebra,s);
+                        }
+
+                    }
+                }
+                else
+                    code+=s;
+                if(j<row.getVariables().size()-1)
+                    code+=',';
+            }
+        }
+        System.out.println(CNF_form);
+        return "";
     }
 }

@@ -118,9 +118,10 @@ public class Controller {
                 System.out.println(equationLeft.get(i).getOpName()+' '+equationLeft.get(i).getVariables()+' '+equationLeft.get(i).getResult());
             }
             System.out.println("-------------------------");
-            for (EquationTable equationTable : equationRight) {
+            /*for (EquationTable equationTable : equationRight) {
                 System.out.println(equationTable.getOpName() + ' ' + equationTable.getVariables() + ' ' + equationTable.getResult());
-            }
+            }*/
+            ParseFunctions.equationToCNF(equationLeft,equationRight,algebra);
 
         }
     }
