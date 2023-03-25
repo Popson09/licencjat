@@ -28,8 +28,8 @@ public class Controller {
     private List<EquationTable> equationLeft=new ArrayList<>();
     private List<EquationTable> equationRight=new ArrayList<>();
 
-    private CheckEquationCorrectnessReturn left;
-    private CheckEquationCorrectnessReturn right;
+    private CheckEquationCorrectnessReturn left=new CheckEquationCorrectnessReturn();
+    private CheckEquationCorrectnessReturn right=new CheckEquationCorrectnessReturn();
     @FXML
     TextField leftSiteText;
     @FXML
@@ -96,6 +96,7 @@ public class Controller {
             right = ParseFunctions.checkEquationCorrectness(algebra, rs);
             checkResultText.setText("Lewe równanie: " + left.message + "\nPrawe równanie: " + right.message);
         }
+
 
 
     }

@@ -6,6 +6,8 @@ import java.util.List;
 public class Operation {
     private String opName;
     private int arity;
+
+
     private final List<Integer> opTable;
 
     public Operation() {
@@ -37,4 +39,8 @@ public class Operation {
             System.out.println("row"+i+": "+ opTable.get(i));
         }
     }
+    public List<Integer> getOpTable() {
+        return opTable;
+    }
+
 }
