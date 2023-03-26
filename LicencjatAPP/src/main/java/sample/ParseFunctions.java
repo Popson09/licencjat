@@ -141,7 +141,7 @@ public class ParseFunctions {
                     CNF_form=CNF_form+"(¬"+s+z+" ∨ "+'¬'+s+q+")^";
             }
         }
-        return CNF_form;
+        return CNF_form+'\n';
     }
     public static int decodeNumber(List<Integer> values, int cardinality) {
         int res = 0;
@@ -175,7 +175,6 @@ public class ParseFunctions {
             return;
         }
         for (int i = 0; i < base; i++) {
-
             for (int k=0;k<number.size();k++)
             {
                 if(number.get(k)==-1)
@@ -186,21 +185,18 @@ public class ParseFunctions {
                     break;
                 }
             }
-
-
         }
     }
-    public static String equationToCNF (List<EquationTable> left,List<EquationTable> right, Algebra algebra)
+    public static String equationToCNF(List<EquationTable> eq,Algebra algebra,List<Character> usedVariables)
     {
-        List<Character> usedVariables=new ArrayList<>(); //tablica wyłapująca powtórzenia zmiennych
         String CNF_form="";
-        CNF_form=CNF_form+getOnefromAll(algebra,left.get(0).getResult());
+        CNF_form=CNF_form+getOnefromAll(algebra,eq.get(0).getResult());
 
-        for(int i=left.size()-1;i>=0;i--) {
+        for(int i=eq.size()-1;i>=0;i--) {
             String s="";
             boolean hasVariable= false;
             boolean flag;
-            EquationTable row=left.get(i);
+            EquationTable row=eq.get(i);
             List<Integer> intEQ=new ArrayList<>();
             for(int j=0;j<row.getVariables().size();j++) {
 
@@ -226,7 +222,7 @@ public class ParseFunctions {
                                 break;
                             }
                         }
-                    if(!flag) {//nie jest więc dołączany ją do formuły
+                        if(!flag) {//nie jest więc dołączany ją do formuły
                             usedVariables.add(c);
                             CNF_form=CNF_form+getOnefromAll(algebra,s);
                         }
@@ -253,13 +249,33 @@ public class ParseFunctions {
             {
 
                 StringBuilder sb= new StringBuilder();
+
                 printAllMatches(algebra.getCardinality(),intEQ,row,algebra,sb);
                 CNF_form+= sb.toString();
             }
+            CNF_form+='\n';
 
         }
+        return CNF_form;
+    }
 
-       System.out.println(CNF_form);
+    public static String doCNF (List<EquationTable> left,List<EquationTable> right, Algebra algebra)
+    {
+        List<Character> usedVariables=new ArrayList<>(); //tablica wyłapująca powtórzenia zmiennych
+        String CNF_form="";
+        CNF_form+=equationToCNF(left,algebra,usedVariables);
+        CNF_form+=equationToCNF(right,algebra,usedVariables);
+        String leftR=left.get(0).getResult();
+        String rightR=right.get(0).getResult();
+        for(int i=0;i< algebra.getCardinality();i++)
+        {
+            CNF_form=CNF_form+"(¬"+leftR+i+" ∨ "+rightR+i+")^("+leftR+i+" ∨ ¬"+rightR+i+")";
+            if(i<algebra.getCardinality()-1)
+                CNF_form+="^";
+        }
+
+
+        System.out.println(CNF_form);
         return "";
     }
 
