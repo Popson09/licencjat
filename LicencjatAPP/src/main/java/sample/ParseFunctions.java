@@ -238,7 +238,7 @@ public class ParseFunctions {
                 {
                     if(Objects.equals(algebra.getOperations().get(b).getOpName(), row.getOpName()))
                     {
-                        CNF_form=CNF_form+row.getResult()+algebra.getOperations().get(b).getOpTable().get(h)+" ^ ";
+                        CNF_form=CNF_form+row.getResult()+'_'+algebra.getOperations().get(b).getOpTable().get(h)+" ^ ";
                         break;
                     }
                 }

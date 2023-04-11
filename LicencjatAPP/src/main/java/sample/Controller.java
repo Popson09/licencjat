@@ -66,9 +66,20 @@ public class Controller {
                     Element intArrayElement = (Element) intArrayNode; //wielkość tablicy to pow(cardinality,arity)
                     //String code=intArrayElement.getAttribute("r"); //kod w opTable funkcje dekodujące w klacie ParseFunction
                     String intRow = intArrayElement.getTextContent();
-                    for (int k = 0; k < algebra.getCardinality(); k++) { //wiersz ma długość cardinality np 00,01,02,03
-                        op.setOpTableValue(arrayIndex, intRow.charAt(k * 2) - '0'); //stały format danych np 2,2,2,2
-                        arrayIndex++;
+                    String intNumber="";
+                    for (int k = 0; k < intRow.length(); k++) { //wiersz ma długość cardinality np 00,01,02,03
+                        if(intRow.charAt(k)!=',' )
+                        {
+                                intNumber+=intRow.charAt(k);
+                        }
+                        if(intRow.charAt(k)==',' || k ==intRow.length()-1)
+                        {
+                            op.setOpTableValue(arrayIndex, Integer.parseInt(intNumber));
+                            arrayIndex++;
+                            intNumber="";
+                        }
+
+
                     }
                 }
                 algebra.setOperationsValue(i, op);//wrzucenie operacji do listy w algebrze
@@ -76,8 +87,7 @@ public class Controller {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //System.out.println(ParseFunctions.decodeNumber(35,algebra.getCardinality()));
-        //System.out.println(ParseFunctions..codeNumber("2,0,3",algebra.getCardinality()));
+
     }
 
     @FXML
