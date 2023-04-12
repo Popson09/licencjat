@@ -30,6 +30,7 @@ public class Controller {
 
     private CheckEquationCorrectnessReturn left=new CheckEquationCorrectnessReturn();
     private CheckEquationCorrectnessReturn right=new CheckEquationCorrectnessReturn();
+    private  CnfFileHelper cnfFileHelper= new CnfFileHelper();
     @FXML
     TextField leftSiteText;
     @FXML
@@ -133,7 +134,7 @@ public class Controller {
                 System.out.println(equationTable.getOpName() + ' ' + equationTable.getVariables() + ' ' + equationTable.getResult());
             }
             System.out.println("-------------------------");
-            ParseFunctions.doCNF(equationLeft,equationRight,algebra);
+            ParseFunctions.doCNF(equationLeft,equationRight,algebra,cnfFileHelper);
 
         }
     }
