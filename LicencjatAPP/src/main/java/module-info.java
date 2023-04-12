@@ -4,6 +4,7 @@ module com.example.licencjatapp {
 
     requires org.kordamp.bootstrapfx.core;
     requires java.xml;
+    requires org.sat4j.core;
 
     opens sample to javafx.fxml;
     exports sample;

@@ -20,12 +20,14 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-              <Button fx:id="fileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#parseFile" prefHeight="142.0" prefWidth="187.0" text="Wczytaj algebrę z pliku" textAlignment="CENTER" textOverrun="CENTER_WORD_ELLIPSIS"/>
-              <Button fx:id="showButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#showReadAlgebra" text="Pokaż algebrę" textAlignment="CENTER" textOverrun="CENTER_WORD_ELLIPSIS" GridPane.rowIndex="1" />
-              <Button fx:id="applyButton" mnemonicParsing="false" onMouseClicked="#checkText" prefHeight="142.0" prefWidth="257.0" text="Sprawdź poprawność równań" textAlignment="CENTER" GridPane.rowIndex="2" />
-              <Button mnemonicParsing="false" prefHeight="142.0" prefWidth="235.0" text="Wykonaj redukcję CNF" GridPane.rowIndex="3" onMouseClicked="#CNFreduction" />
+             <Button mnemonicParsing="false" onMouseClicked="#parseFile"       text="Wczytaj algebrę z pliku"  prefWidth="200" prefHeight="200" GridPane.rowIndex="0" />
+             <Button mnemonicParsing="false" onMouseClicked="#showReadAlgebra" text="Pokaż algebrę" prefWidth="200" prefHeight="200"  GridPane.rowIndex="1" />
+             <Button mnemonicParsing="false" onMouseClicked="#checkText"       text="Sprawdź poprawność równań" prefWidth="200" prefHeight="200" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#CNFreduction"    text="Wykonaj redukcję CNF" prefWidth="200" prefHeight="200" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#runSatSolver"    text="Uruchom SatSolver"  prefWidth="200" prefHeight="200" GridPane.rowIndex="4" />
          </children>
       </GridPane>
       <GridPane layoutX="197.0" layoutY="14.0" prefHeight="569.0" prefWidth="588.0">

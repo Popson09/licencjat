@@ -17,4 +17,10 @@ public class CnfFileHelper { //przechowa format do zapisu formuły do pliku
         this.usedVariables=new ArrayList<>();
         this.variableCode=new ArrayList<>();
     }
+
+    public void clear() {
+        this.line.clear();
+        this.usedVariables.clear();
+        this.variableCode.clear();
+    }
 }
