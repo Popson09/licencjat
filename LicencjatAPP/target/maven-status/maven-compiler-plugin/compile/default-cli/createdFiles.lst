@@ -1,0 +1,10 @@
+sample\EquationSymbols.class
+sample\CnfFileHelper.class
+sample\Controller.class
+module-info.class
+sample\CheckEquationCorrectnessReturn.class
+sample\EquationTable.class
+sample\Operation.class
+sample\ParseFunctions.class
+sample\Algebra.class
+sample\Main.class
