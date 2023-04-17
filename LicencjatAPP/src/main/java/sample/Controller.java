@@ -1,9 +1,13 @@
 package sample;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.sat4j.minisat.SolverFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,6 +23,8 @@ import org.sat4j.core.*;
 import org.sat4j.specs.*;
 import org.sat4j.reader.*;
 
+
+
 public class Controller {
     private final Algebra algebra = new Algebra();
     private List<EquationTable> equationLeft=new ArrayList<>();
@@ -26,6 +32,7 @@ public class Controller {
     private CheckEquationCorrectnessReturn left=new CheckEquationCorrectnessReturn();
     private CheckEquationCorrectnessReturn right=new CheckEquationCorrectnessReturn();
     private final CnfFileHelper cnfFileHelper= new CnfFileHelper();
+    private  ShowFileController showFileController;
     boolean flag=false;
     @FXML
     TextField leftSiteText;
@@ -98,9 +105,28 @@ public class Controller {
             checkResultText.setText("Lewe równanie: " + left.message + "\nPrawe równanie: " + right.message);
         }
     }
-    public void showReadAlgebra() {
-        algebra.showAlgebraFile();
+    public void showReadAlgebra()  {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
+            Parent root = loader.load();
+
+            // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
+            showFileController = loader.getController();
+            showFileController.setText(algebra);
+
+            // Utwórz nowe okno
+            Stage noweOkno = new Stage();
+            noweOkno.setScene(new Scene(root));
+            noweOkno.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // ShowFileController controller=new ShowFileController(algebra);
+        //algebra.showAlgebraFile();
     }
+
+
+
     public void CNFreduction() {
         if (!left.isCorrect || !right.isCorrect)
             checkResultText.setText("Podaj poprawne równania zanim przejdzesz do redukcji!");

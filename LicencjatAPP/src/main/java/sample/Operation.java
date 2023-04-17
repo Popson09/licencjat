@@ -32,12 +32,21 @@ public class Operation {
     {
         this.opTable.add(index,value);
     }
-    public void showOpTableValue()
+    public String showOpTableValue(int c)
     {
-        for(int i=0;i<opTable.size();i++)
+        StringBuilder s=new StringBuilder();
+        for(int i=0;i<opTable.size();)
         {
-            System.out.println("row"+i+": "+ opTable.get(i));
+            for(int j=0;j<c;j++)
+            {
+                s.append("index").append(i).append(": ").append(opTable.get(i)).append(" ");
+                i++;
+                //if(i==opTable.size())
+                   // break;
+            }
+            s.append('\n');
         }
+        return s.toString();
     }
     public List<Integer> getOpTable() {
         return opTable;

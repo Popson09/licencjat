@@ -40,17 +40,19 @@ public class Algebra {
     public List<Operation> getOperations() {
         return operations;
     }
-    public void showAlgebraFile()
+    public String showAlgebraFile()
     {
-        System.out.println("algebraName: "+algName);
-        System.out.println("cardinalityValue: "+cardinality);
-        System.out.println("operations:" );
+        StringBuilder s= new StringBuilder();
+        s.append("algebraName: ").append(algName).append('\n');
+        s.append("cardinalityValue: ").append(cardinality).append('\n');
+        s.append("operations:\n");
         for (Operation operation : operations) {
-            System.out.println("---------------------");
-            System.out.println("opName: "+operation.getOpName());
-            System.out.println("opArity: "+operation.getArity());
-            operation.showOpTableValue();
+            s.append("---------------------\n");
+            s.append("opName: ").append(operation.getOpName()).append('\n');
+            s.append("opArity: ").append(operation.getArity()).append('\n');
+            s.append(operation.showOpTableValue(getCardinality()));
         }
+        return s.toString();
     }
     void clear()
     {
