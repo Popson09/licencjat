@@ -6,12 +6,17 @@ public class ParseFunctions {
 
     public static CheckEquationCorrectnessReturn checkEquationCorrectness(Algebra algebra, String equation) {
         EquationSymbols symbol;
+        int brackets=0;
         Queue<String> queue = new PriorityQueue<>();
         List<String> equationTable=new ArrayList<>();
         String s="";
         for (int i=0;i<equation.length();i++)
         {
             char c=equation.charAt(i);
+            if(c=='(')
+                brackets++;
+            else if (c==')')
+                brackets--;
             if((c >= 'a' && c <= 'z') || (c > 'A' && c <= 'Z')||(c>='0'&&c<='9'))
             {
                 s+=Character.toString(c);
@@ -22,6 +27,8 @@ public class ParseFunctions {
                 s="";
             }
         }
+        if(brackets!=0)
+            return new CheckEquationCorrectnessReturn( "Błędna liczna nawiasów",equationTable,false);
         int opIndex = 0, opCount = 0;
         //sprawdzamy czy symbol jest operacją
         for (int i = equationTable.size()- 1; i >= 0; i--) {
@@ -80,37 +87,35 @@ public class ParseFunctions {
         int index=-1;
         boolean opFind;
         String s;
-        for(int i=0;i<eq.size();i++)
-        {
-            opFind=false;
-            s=eq.get(i);
+        for (String value : eq) {
+            opFind = false;
+            s = value;
             for (int j = 0; j < algebra.getOperations().size(); j++) {
                 if (s.equals(algebra.getOperations().get(j).getOpName())) { //szukam nazwy operacji
-                    if(index==-1) { //pierwszy argument
+                    if (index == -1) { //pierwszy argument
                         index++;
                         res.add(new EquationTable(w));
                         w++;
                         res.get(index).setOpName(s);
                         res.get(index).setArity(algebra.getOperations().get(j).getArity());
-                    }
-                    else { //kolejny
-                        int a=index;
-                        while(res.get(a).getVariables().size()==res.get(a).getArity()) //jeżeli jest to zagnieżdzona funkcja szukam jej początku
+                    } else { //kolejny
+                        int a = index;
+                        while (res.get(a).getVariables().size() == res.get(a).getArity()) //jeżeli jest to zagnieżdzona funkcja szukam jej początku
                             a--;
-                        res.get(a).getVariables().add("w"+w);
+                        res.get(a).getVariables().add("&" + w);
                         res.add(new EquationTable(w));
                         w++;
                         index++;
                         res.get(index).setArity(algebra.getOperations().get(j).getArity());
                         res.get(index).setOpName(s);
                     }
-                    opFind=true;
+                    opFind = true;
                     break;
                 }
             }
-            if(!opFind) //nie jest to operacja wpisuje po prostu zmienną
+            if (!opFind) //nie jest to operacja wpisuje po prostu zmienną
             {
-                while(res.get(index).getVariables().size()==res.get(index).getArity())
+                while (res.get(index).getVariables().size() == res.get(index).getArity())
                     index--;
                 res.get(index).getVariables().add(s);
             }
@@ -152,7 +157,7 @@ public class ParseFunctions {
             String s="";
             for (int j = 0; j < number.size(); j++) {
                 c = variables.getVariables().get(j).charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) {
+                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))||c=='&') {
                     s+="-"+(cnfFileHelper.variableCode.indexOf(variables.getVariables().get(j)+"_"+number.get(j))+1)+" ";
                 }
             }
@@ -191,15 +196,11 @@ public class ParseFunctions {
 
                 s=row.getVariables().get(j);
                 char c = s.charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))||c=='&')
                 {
                     hasVariable=true;
                     intEQ.add(-1);//zaznaczam zmienną jako -1
-                    if((cnfFileHelper.usedVariables.isEmpty()&&c=='w'&&s.length()==1)){ //warunek, gdy pierwsza napotkana zmienna to w
-                        cnfFileHelper.usedVariables.add(c);
-                        getOneFromAll(algebra,s,cnfFileHelper);
-                    }
-                    else if((cnfFileHelper.usedVariables.isEmpty()&&c!='w'&&s.length()==1)) { //warunek, gdy nadal nie mamy zmiennych
+                    if((cnfFileHelper.usedVariables.isEmpty()&&s.length()==1)){ //warunek, gdy nie mamy zmiennych
                         cnfFileHelper.usedVariables.add(c);
                         getOneFromAll(algebra,s,cnfFileHelper);
                     }

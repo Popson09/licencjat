@@ -106,6 +106,10 @@ public class Controller {
         }
     }
     public void showReadAlgebra()  {
+        if (!algebra.isLoad) {
+            checkResultText.setText("Nie wczytałeś ciała algebry!");
+            return;
+        }
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
             Parent root = loader.load();
@@ -135,12 +139,6 @@ public class Controller {
             cnfFileHelper.clear();
             equationLeft=ParseFunctions.getEquationTable(left.equations,algebra,0);
             equationRight=ParseFunctions.getEquationTable(right.equations,algebra,equationLeft.size());
-            for (EquationTable table : equationLeft)
-                System.out.println(table.getOpName() + ' ' + table.getVariables() + ' ' + table.getResult());
-            System.out.println("-------------------------");
-            for (EquationTable equationTable : equationRight)
-                System.out.println(equationTable.getOpName() + ' ' + equationTable.getVariables() + ' ' + equationTable.getResult());
-            System.out.println("-------------------------");
             ParseFunctions.doCNF(equationLeft,equationRight,algebra,cnfFileHelper);
             flag=true;
             //System.out.println(cnfFileHelper.line);
@@ -176,6 +174,18 @@ public class Controller {
     }
 
     public void runSatSolver()  {
+        StringBuilder s=new StringBuilder();
+
+        for (EquationTable table : equationLeft)
+            s.append(table.getOpName()).append(' ').append(table.getVariables()).append(' ').append(table.getResult()).append('\n');
+        s.append("-------------------------\n");
+        for (EquationTable equationTable : equationRight)
+            s.append(equationTable.getOpName()).append(' ').append(equationTable.getVariables()).append(' ').append(equationTable.getResult()).append('\n');
+        s.append("-------------------------\n");
+        s.append("&0 = &").append(equationLeft.size()).append('\n');
+        s.append("-------------------------\n\nWynik:\n\n");
+
+
         if(flag)
         {
            // System.out.println(cnfFileHelper.usedVariables);
@@ -185,6 +195,7 @@ public class Controller {
                 DimacsReader reader = new DimacsReader(solver);
                 reader.parseInstance("reduction.txt");
                 boolean satisfiable = solver.isSatisfiable();
+
                 // Sprawdź, czy problem jest spełnialny
                 if (satisfiable)
                 {
@@ -199,7 +210,21 @@ public class Controller {
                         }
                         FileWriter fileWriter = new FileWriter(plik);
                         for (int i = 1; i <= solver.nVars(); i++)
+                        {
                             fileWriter.write(cnfFileHelper.variableCode.get(i-1) +" = " + solver.model(i)+ System.lineSeparator());
+                            if(solver.model(i))
+                            {
+                                if(cnfFileHelper.variableCode.get(i-1).charAt(0)!='&')
+                                {
+                                    s.append(cnfFileHelper.variableCode.get(i-1).charAt(0)).append("=").append(cnfFileHelper.variableCode.get(i-1).charAt(2)).append('\n');
+                                }
+                                else
+                                {
+                                    s.append(cnfFileHelper.variableCode.get(i-1), 0, 2).append("=").append(cnfFileHelper.variableCode.get(i-1).charAt(3)).append('\n');
+                                }
+                            }
+                        }
+
                         fileWriter.close();
                     }catch (IOException e) {
                         throw new RuntimeException(e);
@@ -210,8 +235,27 @@ public class Controller {
             } catch (ContradictionException | TimeoutException | ParseFormatException | IOException e) {
                 throw new RuntimeException(e);}
             flag=false;
+
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
+                Parent root = loader.load();
+
+                // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
+                showFileController = loader.getController();
+                showFileController.showRes(s.toString());
+
+                // Utwórz nowe okno
+                Stage noweOkno = new Stage();
+                noweOkno.setScene(new Scene(root));
+                noweOkno.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         else
             checkResultText.setText("Nie wykonałeś redukcji!");
+
+
     }
+
 }

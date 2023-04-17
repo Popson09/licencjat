@@ -12,5 +12,9 @@ public class ShowFileController {
         text.setText(algebra.showAlgebraFile());
 
     }
+    void showRes(String s){
+        text.setText(s);
+
+    }
 
 }
