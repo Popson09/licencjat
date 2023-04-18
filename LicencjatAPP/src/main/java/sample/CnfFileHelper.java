@@ -24,3 +24,4 @@ public class CnfFileHelper { //przechowa format do zapisu formuły do pliku
         this.variableCode.clear();
     }
 }
+

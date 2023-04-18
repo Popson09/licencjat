@@ -1,10 +1,9 @@
-module com.example.licencjatapp {
+module g.sample {
     requires javafx.controls;
     requires javafx.fxml;
-
-    requires org.kordamp.bootstrapfx.core;
-    requires java.xml;
     requires org.sat4j.core;
+    requires java.xml;
+
 
     opens sample to javafx.fxml;
     exports sample;

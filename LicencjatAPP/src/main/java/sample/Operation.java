@@ -42,7 +42,7 @@ public class Operation {
                 s.append("index").append(i).append(": ").append(opTable.get(i)).append(" ");
                 i++;
                 //if(i==opTable.size())
-                   // break;
+                // break;
             }
             s.append('\n');
         }

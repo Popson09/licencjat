@@ -72,7 +72,7 @@ public class Controller {
                     for (int k = 0; k < intRow.length(); k++) { //wiersz ma długość cardinality np 00,01,02,03
                         if(intRow.charAt(k)!=',' )
                         {
-                                intNumber.append(intRow.charAt(k));
+                            intNumber.append(intRow.charAt(k));
                         }
                         if(intRow.charAt(k)==',' || k ==intRow.length()-1)
                         {
@@ -188,7 +188,7 @@ public class Controller {
 
         if(flag)
         {
-           // System.out.println(cnfFileHelper.usedVariables);
+            // System.out.println(cnfFileHelper.usedVariables);
             //System.out.println(cnfFileHelper.line.size());
             try{
                 ISolver solver = SolverFactory.newDefault();

@@ -56,7 +56,7 @@ public class Algebra {
     }
     void clear()
     {
-        
+
         this.operations.clear();
         this.isLoad=false;
         this.algName="";
