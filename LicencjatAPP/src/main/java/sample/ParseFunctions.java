@@ -4,105 +4,108 @@ import java.util.*;
 
 public class ParseFunctions {
 
+    //pierwszy etap: Sprawdzenie, czy podane równanie jest zgodne z wczytaną algebrą
     public static CheckEquationCorrectnessReturn checkEquationCorrectness(Algebra algebra, String equation) {
-        EquationSymbols symbol;
-        int brackets=0;
-        Queue<String> queue = new PriorityQueue<>();
-        List<String> equationTable=new ArrayList<>();
-        String s="";
-        for (int i=0;i<equation.length();i++)
+        EquationSymbols symbol; //pomocniczy enum
+        int brackets=0; //zmienna sprawdzająca zgodność nawiasów
+        Queue<String> queue = new PriorityQueue<>(); //kolejka nadzorująca ilość zmiennych
+        List<String> equationTable=new ArrayList<>(); //lista z przekształconym równaniem
+        StringBuilder s= new StringBuilder();
+        for (int i=0;i<equation.length();i++) //sprawdzamy podany string char po charze usuwając wszystkie niepotrzebne znaki
         {
             char c=equation.charAt(i);
-            if(c=='(')
+            if(c=='(') //sprawdzamy zgodność par nawiasów
                 brackets++;
             else if (c==')')
-                brackets--;
+            {
+                brackets-=1;
+                if(brackets<0)
+                    return new CheckEquationCorrectnessReturn( "Błędna liczna nawiasów",equationTable,false);
+            }
+
             if((c >= 'a' && c <= 'z') || (c > 'A' && c <= 'Z')||(c>='0'&&c<='9'))
             {
-                s+=Character.toString(c);
+                s.append(c); //dodajemy odczytany znak do pomocniczego stringa
             }
             else if(c=='('||c==','||(c==')'&& i==equation.length()-1)||(c==')'&& equation.charAt(i)!=')'))
             {
-                equationTable.add(s);
-                s="";
+                equationTable.add(s.toString()); //napotkaliśmy znak kończący zmienną, dodajemy ją do listy
+                s = new StringBuilder();
             }
         }
         if(brackets!=0)
             return new CheckEquationCorrectnessReturn( "Błędna liczna nawiasów",equationTable,false);
-        int opIndex = 0, opCount = 0;
-        //sprawdzamy czy symbol jest operacją
+        int opIndex = 0;
+        //wstępnie obrobione równanie sprawdzamy, pod względem poprawności z algebrą
         for (int i = equationTable.size()- 1; i >= 0; i--) {
             symbol = EquationSymbols.empty;
-            s = equationTable.get(i);
+            s = new StringBuilder(equationTable.get(i)); //pobieramy kolejny znak równania
 
             for (int j = 0; j < algebra.getOperations().size(); j++) {
-                if (s.equals(algebra.getOperations().get(j).getOpName())) {
-                    symbol = EquationSymbols.operator; //symbol znaleziony jako operator
-                    opIndex = j;
+                if (s.toString().equals(algebra.getOperations().get(j).getOpName())) {
+                    symbol = EquationSymbols.operator; //symbol znaleziony w algebrze, jako nazwa operacji
+                    opIndex = j; //zapamiętujemy index operacji w algebrze
                     break;
                 }
             }
-            if (symbol == EquationSymbols.empty) { //symbol nie jest operacją sprawdzamy czy jest zmienną
-                for (int j = 0; j < s.length(); j++) {
-                    char c = s.charAt(j);
-                    if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && s.length() == 1) {
-                        symbol = EquationSymbols.variable;//jednoliterowy string który nie jest operatorem jest zmienną
-                        break;
-                    } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-                        return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",equationTable,false);
-                        // złapany jako operator to jest niewłaściwym symbolem w równaniu
-                    }
+            if (symbol == EquationSymbols.empty) { //symbol nie jest operacją, sprawdzamy, czy jest zmienną lub stałą
+                if( s.length() != 1)
+                    return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",equationTable,false);
+
+                char c = s.charAt(0);
+                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                    symbol = EquationSymbols.variable;//jednoliterowy string, który nie jest operatorem jest zmienną
+
+                else if (c>='0'&&c<='9') {
+                    int a = Integer.parseInt(s.toString());
+                    if (a >= algebra.getCardinality() || a < 0) //sprawdzamy, czy liczba należy do dziedziny
+                        return new CheckEquationCorrectnessReturn("Błędne równanie: Stała poza zakresem dziedziny", equationTable, false);
+                    symbol = EquationSymbols.constant;
                 }
-            }
-            if (symbol == EquationSymbols.empty) {//symbol nie jest zmienną sprawdzamy czy jest stałą
-                int a = Integer.parseInt(s);
-                if (a >= algebra.getCardinality())
-                    return new CheckEquationCorrectnessReturn("Błędne równanie: Stała poza zakresem dziedziny",equationTable,false);
-                else
-                    symbol = EquationSymbols.constant; //symbol jest stałą liczbową
             }
             if (symbol == EquationSymbols.constant || symbol == EquationSymbols.variable)
-                queue.add(s); //dodajemy liczbe/zmienną do stosu
-            else {
-                for (int j = 0; j < algebra.getOperations().get(opIndex).getArity(); j++) //posiadamy symbol ściągamy odpowiednią liczbe symboli ze stosu
+                queue.add(s.toString()); //dodajemy liczbę/zmienną do stosu
+            else { //symbol jest operatorem
+                for (int j = 0; j < algebra.getOperations().get(opIndex).getArity(); j++) //znajdujemy liczbę argumentów powiązanych z operacją
                 {
                     if (queue.isEmpty())
-
                         return new CheckEquationCorrectnessReturn("Błędne równanie: Pusty stos",equationTable,false);//mamy na mało symboli na stosie czyli równanie złe
                     else {
-                        queue.remove(); //ściągamy symbole, nie potrzebujemy ich znać, bo tylko sprawdzamy składnie
+                        queue.remove(); //ściągamy odpowiednią liczbę zmiennych
                     }
                 }
-                queue.add("w" + opCount);//dodajemy symbol wynikowy do stosu
-                opCount++;
+                queue.add("w");//dodajemy zmienną wynikową do stosu
+
             }
         }
         if(queue.size() > 1) //na koniec w stosie powinien zostać tylko jeden symbol
             return new CheckEquationCorrectnessReturn("Błędne równanie: nadmiarowa liczba zmiennych",equationTable,false);
         return new CheckEquationCorrectnessReturn( "Równanie poprawne",equationTable,true);
     }
-    public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w) //na podstawie stringa wygenerowanego po sprawdzeniu poprawnosci grupuje zmnienne po operacjach
+    //Na podstawie listy symboli równania z poprzedniej funkcji budujemy listę pojedynczych działań równania
+    public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w)
     {
-        List<EquationTable> res=new ArrayList<>(); // konkretna operacja np. XOR(1,w1)
-        int index=-1;
+         //w to zmienna indeksująca symbol oznaczający wynik działania
+        List<EquationTable> res=new ArrayList<>(); // Lista działań równania np. xor(1,x) &0
+        int index=-1; //zmienna indeksująca listę
         boolean opFind;
         String s;
         for (String value : eq) {
             opFind = false;
-            s = value;
+            s = value; //pobieramy pojedynczy symbol równania
             for (int j = 0; j < algebra.getOperations().size(); j++) {
-                if (s.equals(algebra.getOperations().get(j).getOpName())) { //szukam nazwy operacji
-                    if (index == -1) { //pierwszy argument
-                        index++;
+                if (s.equals(algebra.getOperations().get(j).getOpName())) { //symbol jest operatorem
+                    if (index == -1) {
+                        index++; //zwiększam indeks listy
                         res.add(new EquationTable(w));
-                        w++;
-                        res.get(index).setOpName(s);
+                        w++; //zwiększam indeks numeracji działania
+                        res.get(index).setOpName(s); //wrzucam do tablicy nazwę operacji i ilość argumentów
                         res.get(index).setArity(algebra.getOperations().get(j).getArity());
-                    } else { //kolejny
+                    } else {
                         int a = index;
-                        while (res.get(a).getVariables().size() == res.get(a).getArity()) //jeżeli jest to zagnieżdzona funkcja szukam jej początku
+                        while (res.get(a).getVariables().size() == res.get(a).getArity()) //jeżeli jest to zagnieżdżona funkcja szukam jej początku
                             a--;
-                        res.get(a).getVariables().add("&" + w);
+                        res.get(a).getVariables().add("&" + w); //dodaje wynik działania do listy zmiennych działania, w którym nastąpiło wywołanie
                         res.add(new EquationTable(w));
                         w++;
                         index++;
@@ -115,33 +118,32 @@ public class ParseFunctions {
             }
             if (!opFind) //nie jest to operacja wpisuje po prostu zmienną
             {
-                while (res.get(index).getVariables().size() == res.get(index).getArity())
+                while (res.get(index).getVariables().size() == res.get(index).getArity()) //zapobieganie błędom przy działaniach zagnieżdżonych
                     index--;
                 res.get(index).getVariables().add(s);
             }
         }
         return res;
     }
-    public static void getOneFromAll(Algebra algebra,String s,CnfFileHelper cnfFileHelper) //funkcja zapewniająca dokładnie 1 wystąpienie zmiennje
+    //pierwsza funkcja generująca CNF
+    public static void getOneFromAll(Algebra algebra,String s,CnfFileHelper cnfFileHelper)
     {
-        String line="";
-        for(int z=0;z< algebra.getCardinality();z++) //długi nawias np (x1 ||x2 ||x3) zapewniający conajmniej 1 jedynkę
+        StringBuilder line= new StringBuilder();
+        for(int z=0;z< algebra.getCardinality()-1;z++) //generowanie formuły (x1||x2||...||xn) n={1 ... algebra.getCardinality()}
         {
-            cnfFileHelper.variableCode.add(s+"_"+z);
-            line+=cnfFileHelper.variableCode.size();
-            if(z<algebra.getCardinality()-1)
-                line+=" ";
-            else {
-                line += " 0";
-                cnfFileHelper.line.add(line);
-            }
+            cnfFileHelper.variableCode.add(s+"_"+z);//dodaje symbol jako użytą zmienną w formule
+            line.append(cnfFileHelper.variableCode.size()).append(" ");//dodaje do formuły po odpowiednim prze-indeksowaniu
         }
-        for(int z=0;z< algebra.getCardinality();z++){ //nawiasy (!x1 || !x2)&&(!x1 || !x3)&&(!x2 || !x3) zapewniające co najwyżej 1 jedynkę
+        cnfFileHelper.variableCode.add(s+"_"+(algebra.getCardinality()-1));
+        line.append(cnfFileHelper.variableCode.size()).append(" 0");//kończę formułę
+        cnfFileHelper.line.add(line.toString());
+        for(int z=0;z< algebra.getCardinality();z++){ // generowanie formuły (!xn ||!xm) n={1 ... algebra.getCardinality()} m={1 ... algebra.getCardinality()}
             for(int q=z+1;q< algebra.getCardinality();q++) {
                 cnfFileHelper.line.add("-"+ (cnfFileHelper.variableCode.indexOf(s + "_" + z)+1) +" -"+ (cnfFileHelper.variableCode.indexOf(s + "_" + q)+1)+" 0");
             }
         }
     }
+    //dekodowanie numeru zapisu w tablicy operacji kod to system liczbowy o podstawie cardinality
     public static int decodeNumber(List<Integer> values, int cardinality) {
         int res = 0;
         for (int i = values.size() - 1, j = 0; i >= 0; i--, j++) {
@@ -150,26 +152,28 @@ public class ParseFunctions {
         }
         return res;
     }
+    //funkcja rekurencyjna wywoływana, gdy działanie ma jakieś zmienne
     public static void printAllMatches(int base, List<Integer> number, EquationTable variables, Algebra algebra,CnfFileHelper cnfFileHelper) {
         if (!number.contains(-1)) { // jeśli nie ma już niewiadomych cyfr
             int decimalNumber = decodeNumber(number, algebra.getCardinality()); // oblicz wartość liczby w systemie dziesiętnym
             char c = ' ';
-            String s="";
+            StringBuilder s= new StringBuilder();
             for (int j = 0; j < number.size(); j++) {
                 c = variables.getVariables().get(j).charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))||c=='&') {
-                    s+="-"+(cnfFileHelper.variableCode.indexOf(variables.getVariables().get(j)+"_"+number.get(j))+1)+" ";
+                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))||c=='&') { //sprawdzamy, gdzie w oryginalnym działaniu była zmienna
+                    s.append("-").append(cnfFileHelper.variableCode.indexOf(variables.getVariables().get(j) + "_" + number.get(j)) + 1).append(" ");
                 }
             }
-            for (int b = 0; b < algebra.getOperations().size(); b++) {
+            for (int b = 0; b < algebra.getOperations().size(); b++) { //szukamy powiązanej operacji, by móc zdekodować wynik działania
                 if (Objects.equals(algebra.getOperations().get(b).getOpName(), variables.getOpName())) {
-                    s+=(cnfFileHelper.variableCode.indexOf(variables.getResult()+"_"+algebra.getOperations().get(b).getOpTable().get(decimalNumber))+1)+" 0";
-                    cnfFileHelper.line.add(s);
+                    s.append(cnfFileHelper.variableCode.indexOf(variables.getResult() + "_" + algebra.getOperations().get(b).getOpTable().get(decimalNumber)) + 1).append(" 0");
+                    cnfFileHelper.line.add(s.toString());
                     break;
                 }
             }
             return;
         }
+        //rekurencyjne wywołania zmienna oznaczona jako -1
         for (int i = 0; i < base; i++) {
             for (int k=0;k<number.size();k++)
             {
@@ -183,14 +187,13 @@ public class ParseFunctions {
             }
         }
     }
+    //funkcja zarządzająca zamianą na CNF
     public static void equationToCNF(List<EquationTable> eq,Algebra algebra,CnfFileHelper cnfFileHelper)
     {
-        getOneFromAll(algebra,eq.get(0).getResult(),cnfFileHelper);
         for(int i=eq.size()-1;i>=0;i--) {
             String s="";
             boolean hasVariable= false;
-            boolean flag;
-            EquationTable row=eq.get(i);
+            EquationTable row=eq.get(i); //pobieramy działanie
             List<Integer> intEQ=new ArrayList<>();
             for(int j=0;j<row.getVariables().size();j++) {
 
@@ -199,27 +202,14 @@ public class ParseFunctions {
                 if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))||c=='&')
                 {
                     hasVariable=true;
-                    intEQ.add(-1);//zaznaczam zmienną jako -1
-                    if((cnfFileHelper.usedVariables.isEmpty()&&s.length()==1)){ //warunek, gdy nie mamy zmiennych
+                    intEQ.add(-1);//zaznaczam zmienną jako -1 dla funkcji rekurencyjnej
+                    if((!cnfFileHelper.usedVariables.contains(c)&&s.length()==1)){ //sprawdzenie, czy zmienna jest duplikatem
                         cnfFileHelper.usedVariables.add(c);
                         getOneFromAll(algebra,s,cnfFileHelper);
                     }
-                    else if(s.length()<2) { //mamy zmienne, ale nie wynikowe
-                        flag=false;
-                        for (Character usedVariable : cnfFileHelper.usedVariables) {
-                            if (c == usedVariable) {
-                                flag = true; //sprawdzamy, czy zmienna nie jest duplikatem
-                                break;
-                            }
-                        }
-                        if(!flag) {//nie jest więc dołączany ją do formuły
-                            cnfFileHelper.usedVariables.add(c);
-                            getOneFromAll(algebra,s,cnfFileHelper);
-                        }
-                    }
                 }
                 else
-                    intEQ.add(Integer.parseInt(s));//przepisuje stałą
+                    intEQ.add(Integer.parseInt(s));//przepisuje stałą dla funkcji rekurencyjnej
             }
             if(!hasVariable) //funkcja ma same stałe wiec po prostu wybieram odpowiednią zmienną
             {
@@ -230,7 +220,7 @@ public class ParseFunctions {
                     {
                         if(!cnfFileHelper.variableCode.contains(row.getResult() + "_0"))
                         {
-                            for(int z=0;z< algebra.getCardinality();z++) //długi nawias np (x1 ||x2 ||x3) zapewniający conajmniej 1 jedynkę
+                            for(int z=0;z< algebra.getCardinality();z++) //generowanie zmiennych, aby prze-indeksować zmienne (zabezpieczenie przy zagnieżdżonym działaniu bez zmiennych)
                                 cnfFileHelper.variableCode.add(row.getResult()+"_"+z);
                         }
                         cnfFileHelper.line.add((cnfFileHelper.variableCode.indexOf(row.getResult() + '_' + algebra.getOperations().get(b).getOpTable().get(h))+1) +" 0");
@@ -238,12 +228,14 @@ public class ParseFunctions {
                     }
                 }
             }
-            else if(i!=0)
+            else
+            {
                 getOneFromAll(algebra,row.getResult(),cnfFileHelper);
-            if(hasVariable)
                 printAllMatches(algebra.getCardinality(),intEQ,row,algebra,cnfFileHelper);
+            }
         }
     }
+    //spinam wszystkie funkcje tworzące formułę
     public static void doCNF (List<EquationTable> left,List<EquationTable> right, Algebra algebra,CnfFileHelper cnfFileHelper)
     {
         equationToCNF(left,algebra,cnfFileHelper);
