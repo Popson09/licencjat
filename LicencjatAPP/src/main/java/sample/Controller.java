@@ -229,6 +229,21 @@ public class Controller {
                     }catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
+                        Parent root = loader.load();
+
+                        // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
+                        showFileController = loader.getController();
+                        showFileController.showRes(s.toString());
+
+                        // Utwórz nowe okno
+                        Stage noweOkno = new Stage();
+                        noweOkno.setScene(new Scene(root));
+                        noweOkno.show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 else
                     checkResultText.setText("Nie znaleziono spełnialnego przypisania zmiennych.");
@@ -236,21 +251,7 @@ public class Controller {
                 throw new RuntimeException(e);}
             flag=false;
 
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
-                Parent root = loader.load();
 
-                // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
-                showFileController = loader.getController();
-                showFileController.showRes(s.toString());
-
-                // Utwórz nowe okno
-                Stage noweOkno = new Stage();
-                noweOkno.setScene(new Scene(root));
-                noweOkno.show();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         else
             checkResultText.setText("Nie wykonałeś redukcji!");
