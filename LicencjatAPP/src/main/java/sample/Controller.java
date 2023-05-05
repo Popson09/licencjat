@@ -16,24 +16,21 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import org.sat4j.core.*;
 import org.sat4j.specs.*;
 import org.sat4j.reader.*;
 
-
-
 public class Controller {
     private final Algebra algebra = new Algebra();
-    private List<EquationTable> equationLeft=new ArrayList<>();
-    private List<EquationTable> equationRight=new ArrayList<>();
-    private CheckEquationCorrectnessReturn left=new CheckEquationCorrectnessReturn();
-    private CheckEquationCorrectnessReturn right=new CheckEquationCorrectnessReturn();
+    private final List<List<EquationTable>> equationLeft=new ArrayList<>();
+    private final List<List<EquationTable>> equationRight=new ArrayList<>();
+    private final List<CheckEquationCorrectnessReturn> left=new ArrayList<>();
+    private final List<CheckEquationCorrectnessReturn> right=new ArrayList<>();
     private final CnfFileHelper cnfFileHelper= new CnfFileHelper();
     private  ShowFileController showFileController;
     boolean flag=false;
+    boolean statusFlag=false;
     @FXML
     TextField leftSiteText;
     @FXML
@@ -65,11 +62,11 @@ public class Controller {
                 int arrayIndex = 0;
                 for (int j = 0; j < intArray.getLength(); j++) {
                     Node intArrayNode = intArray.item(j);
-                    Element intArrayElement = (Element) intArrayNode; //wielkość tablicy to pow(cardinality,arity)
-                    //String code=intArrayElement.getAttribute("r"); //kod w opTable funkcje dekodujące w klacie ParseFunction
+                    Element intArrayElement = (Element) intArrayNode; //Wielkość tablicy to pow. (cardinality,arity)
+                    //String code=intArrayElement.getAttribute("r"); //kod w opTable funkcje dekodujące w klasie ParseFunction
                     String intRow = intArrayElement.getTextContent();
                     StringBuilder intNumber= new StringBuilder();
-                    for (int k = 0; k < intRow.length(); k++) { //wiersz ma długość cardinality np 00,01,02,03
+                    for (int k = 0; k < intRow.length(); k++) { //Wiersz ma długość cardinality np. 00,01,02,03
                         if(intRow.charAt(k)!=',' )
                         {
                             intNumber.append(intRow.charAt(k));
@@ -94,15 +91,49 @@ public class Controller {
             checkResultText.setText("Nie wczytałeś ciała algebry!");
             return;
         }
-        String ls = leftSiteText.getText();
+        statusFlag=true;
+        String ls=leftSiteText.getText();
         String rs = rightSiteText.getText();
-        if (ls.length()==0 || rs.length()==0)
+        String [] lsTable=ls.split(";");
+        String [] rsTable=rs.split(";");
+        if (ls.equals("") || rs.equals(""))
             checkResultText.setText("Nie podałeś równania!");
+        else if (lsTable.length!= rsTable.length)
+            checkResultText.setText("Podałeś niezgodną liczbę równań!");
         else
         {
-            left = ParseFunctions.checkEquationCorrectness(algebra, ls);
-            right = ParseFunctions.checkEquationCorrectness(algebra, rs);
-            checkResultText.setText("Lewe równanie: " + left.message + "\nPrawe równanie: " + right.message);
+            StringBuilder leftMessage= new StringBuilder();
+            StringBuilder rightMessage= new StringBuilder();
+
+            for(int i=0;i< lsTable.length;i++)
+            {
+                left.add(i,ParseFunctions.checkEquationCorrectness(algebra, lsTable[i]));
+                right.add(i,ParseFunctions.checkEquationCorrectness(algebra, rsTable[i]));
+                if(!left.get(i).isCorrect||!right.get(i).isCorrect)
+                    statusFlag=false;
+                leftMessage.append("Równanie ").append(i).append(": ").append(left.get(i).message).append("\n");
+                rightMessage.append("Równanie ").append(i).append(": ").append(right.get(i).message).append("\n");
+            }
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
+                Parent root = loader.load();
+
+                // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
+                showFileController = loader.getController();
+                showFileController.showEqStatus(leftMessage.toString(),rightMessage.toString());
+
+                // Utwórz nowe okno
+                Stage noweOkno = new Stage();
+                noweOkno.setScene(new Scene(root));
+                noweOkno.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if(statusFlag)
+                checkResultText.setText("Równania Poprawne");
+            else
+                checkResultText.setText("Równania Niepoprawne");
         }
     }
     public void showReadAlgebra()  {
@@ -125,25 +156,28 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // ShowFileController controller=new ShowFileController(algebra);
-        //algebra.showAlgebraFile();
     }
 
-
-
     public void CNFreduction() {
-        if (!left.isCorrect || !right.isCorrect)
-            checkResultText.setText("Podaj poprawne równania zanim przejdzesz do redukcji!");
+        int w=0;
+
+        if (!statusFlag)
+            checkResultText.setText("Podaj poprawne równania zanim przejdziesz do redukcji!");
         else
         {
             cnfFileHelper.clear();
-            equationLeft=ParseFunctions.getEquationTable(left.equations,algebra,0);
-            equationRight=ParseFunctions.getEquationTable(right.equations,algebra,equationLeft.size());
-            ParseFunctions.doCNF(equationLeft,equationRight,algebra,cnfFileHelper);
-            flag=true;
-            //System.out.println(cnfFileHelper.line);
-            //System.out.println(cnfFileHelper.variableCode);
+            for(int i=0;i< left.size();i++)
+            {
+                equationLeft.add(new ArrayList<>());
+                equationRight.add(new ArrayList<>());
+                equationLeft.set(i,ParseFunctions.getEquationTable(left.get(i).equations,algebra,w));
+                w+=equationLeft.get(i).size();
+                equationRight.set(i,ParseFunctions.getEquationTable(right.get(i).equations,algebra,w));
+                w+=equationRight.get(i).size();
+                ParseFunctions.doCNF(equationLeft.get(i),equationRight.get(i),algebra,cnfFileHelper);
+            }
 
+            flag=true;
             String nazwaPliku = "reduction.txt";
             File plik = new File(nazwaPliku);
             try {
@@ -169,33 +203,26 @@ public class Controller {
                 e.printStackTrace();
             }
         }
-
-
     }
 
     public void runSatSolver()  {
+
         StringBuilder s=new StringBuilder();
-
-        for (EquationTable table : equationLeft)
-            s.append(table.getOpName()).append(' ').append(table.getVariables()).append(' ').append(table.getResult()).append('\n');
-        s.append("-------------------------\n");
-        for (EquationTable equationTable : equationRight)
-            s.append(equationTable.getOpName()).append(' ').append(equationTable.getVariables()).append(' ').append(equationTable.getResult()).append('\n');
-        s.append("-------------------------\n");
-        s.append("&0 = &").append(equationLeft.size()).append('\n');
+        for(int i=0;i<equationLeft.size();i++)
+        {
+            s.append("-------------------------\n");
+            eqOutput(s, i, equationLeft);
+            eqOutput(s, i, equationRight);
+            s.append(equationLeft.get(i).get(0).getResult()).append(" = ").append(equationRight.get(i).get(0).getResult()).append('\n');
+        }
         s.append("-------------------------\n\nWynik:\n\n");
-
-
         if(flag)
         {
-            // System.out.println(cnfFileHelper.usedVariables);
-            //System.out.println(cnfFileHelper.line.size());
             try{
                 ISolver solver = SolverFactory.newDefault();
                 DimacsReader reader = new DimacsReader(solver);
                 reader.parseInstance("reduction.txt");
                 boolean satisfiable = solver.isSatisfiable();
-
                 // Sprawdź, czy problem jest spełnialny
                 if (satisfiable)
                 {
@@ -214,14 +241,9 @@ public class Controller {
                             fileWriter.write(cnfFileHelper.variableCode.get(i-1) +" = " + solver.model(i)+ System.lineSeparator());
                             if(solver.model(i))
                             {
-                                if(cnfFileHelper.variableCode.get(i-1).charAt(0)!='&')
-                                {
-                                    s.append(cnfFileHelper.variableCode.get(i-1).charAt(0)).append("=").append(cnfFileHelper.variableCode.get(i-1).charAt(2)).append('\n');
-                                }
-                                else
-                                {
-                                    s.append(cnfFileHelper.variableCode.get(i-1), 0, 2).append("=").append(cnfFileHelper.variableCode.get(i-1).charAt(3)).append('\n');
-                                }
+                                String []s1 =cnfFileHelper.variableCode.get(i-1).split("_");
+                                s.append(s1[0]).append("=").append(s1[1]).append('\n');
+
                             }
                         }
 
@@ -232,11 +254,9 @@ public class Controller {
                     try {
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
                         Parent root = loader.load();
-
                         // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
                         showFileController = loader.getController();
                         showFileController.showRes(s.toString());
-
                         // Utwórz nowe okno
                         Stage noweOkno = new Stage();
                         noweOkno.setScene(new Scene(root));
@@ -250,13 +270,14 @@ public class Controller {
             } catch (ContradictionException | TimeoutException | ParseFormatException | IOException e) {
                 throw new RuntimeException(e);}
             flag=false;
-
-
         }
         else
             checkResultText.setText("Nie wykonałeś redukcji!");
-
-
     }
 
+    private void eqOutput(StringBuilder s, int i, List<List<EquationTable>> equationLeft) {
+        for (int j = 0; j< equationLeft.get(i).size(); j++)
+            s.append(equationLeft.get(i).get(j).getOpName()).append(' ').append(equationLeft.get(i).get(j).getVariables()).append(' ').append(equationLeft.get(i).get(j).getResult()).append('\n');
+        s.append("-------------------------\n");
+    }
 }

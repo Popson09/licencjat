@@ -7,40 +7,15 @@ public class ParseFunctions {
     //pierwszy etap: Sprawdzenie, czy podane równanie jest zgodne z wczytaną algebrą
     public static CheckEquationCorrectnessReturn checkEquationCorrectness(Algebra algebra, String equation) {
         EquationSymbols symbol; //pomocniczy enum
-        int brackets=0; //zmienna sprawdzająca zgodność nawiasów
         Queue<String> queue = new PriorityQueue<>(); //kolejka nadzorująca ilość zmiennych
-        List<String> equationTable=new ArrayList<>(); //lista z przekształconym równaniem
-        StringBuilder s= new StringBuilder();
-        for (int i=0;i<equation.length();i++) //sprawdzamy podany string char po charze usuwając wszystkie niepotrzebne znaki
-        {
-            char c=equation.charAt(i);
-            if(c=='(') //sprawdzamy zgodność par nawiasów
-                brackets++;
-            else if (c==')')
-            {
-                brackets-=1;
-                if(brackets<0)
-                    return new CheckEquationCorrectnessReturn( "Błędna liczna nawiasów",equationTable,false);
-            }
-
-            if((c >= 'a' && c <= 'z') || (c > 'A' && c <= 'Z')||(c>='0'&&c<='9'))
-            {
-                s.append(c); //dodajemy odczytany znak do pomocniczego stringa
-            }
-            else if(c=='('||c==','||(c==')'&& i==equation.length()-1)||(c==')'&& equation.charAt(i)!=')'))
-            {
-                equationTable.add(s.toString()); //napotkaliśmy znak kończący zmienną, dodajemy ją do listy
-                s = new StringBuilder();
-            }
-        }
-        if(brackets!=0)
-            return new CheckEquationCorrectnessReturn( "Błędna liczna nawiasów",equationTable,false);
+        StringBuilder s;
+        equation=equation.replaceAll("\\s+", "");
+        List<String> eqList =new ArrayList<>(Arrays.asList(equation.split("[() ,]+")));//lista z przekształconym równaniem
         int opIndex = 0;
         //wstępnie obrobione równanie sprawdzamy, pod względem poprawności z algebrą
-        for (int i = equationTable.size()- 1; i >= 0; i--) {
+        for (int i = eqList.size()- 1; i >= 0; i--) {
             symbol = EquationSymbols.empty;
-            s = new StringBuilder(equationTable.get(i)); //pobieramy kolejny znak równania
-
+            s = new StringBuilder(eqList.get(i)); //pobieramy kolejny znak równania
             for (int j = 0; j < algebra.getOperations().size(); j++) {
                 if (s.toString().equals(algebra.getOperations().get(j).getOpName())) {
                     symbol = EquationSymbols.operator; //symbol znaleziony w algebrze, jako nazwa operacji
@@ -49,19 +24,23 @@ public class ParseFunctions {
                 }
             }
             if (symbol == EquationSymbols.empty) { //symbol nie jest operacją, sprawdzamy, czy jest zmienną lub stałą
-                if( s.length() != 1)
-                    return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",equationTable,false);
-
                 char c = s.charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))&& s.length() == 1)
                     symbol = EquationSymbols.variable;//jednoliterowy string, który nie jest operatorem jest zmienną
-
                 else if (c>='0'&&c<='9') {
-                    int a = Integer.parseInt(s.toString());
-                    if (a >= algebra.getCardinality() || a < 0) //sprawdzamy, czy liczba należy do dziedziny
-                        return new CheckEquationCorrectnessReturn("Błędne równanie: Stała poza zakresem dziedziny", equationTable, false);
-                    symbol = EquationSymbols.constant;
+                    try //Zabezpieczenie na wypadek, gdyby ktoś wprowadził symbol np. 2x
+                    {
+                        int a = Integer.parseInt(s.toString());
+                        if (a >= algebra.getCardinality() || a < 0) //sprawdzamy, czy liczba należy do dziedziny
+                            return new CheckEquationCorrectnessReturn("Błędne równanie: Stała poza zakresem dziedziny", eqList, false);
+                        symbol = EquationSymbols.constant;
+                    }
+                    catch (Exception e) {
+                        return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",eqList,false);
+                    }
                 }
+                else
+                    return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",eqList,false);
             }
             if (symbol == EquationSymbols.constant || symbol == EquationSymbols.variable)
                 queue.add(s.toString()); //dodajemy liczbę/zmienną do stosu
@@ -69,22 +48,22 @@ public class ParseFunctions {
                 for (int j = 0; j < algebra.getOperations().get(opIndex).getArity(); j++) //znajdujemy liczbę argumentów powiązanych z operacją
                 {
                     if (queue.isEmpty())
-                        return new CheckEquationCorrectnessReturn("Błędne równanie: Pusty stos",equationTable,false);//mamy na mało symboli na stosie czyli równanie złe
+                        return new CheckEquationCorrectnessReturn("Błędne równanie: Pusty stos",eqList,false);//mamy na mało symboli na stosie, czyli równanie złe
                     else {
                         queue.remove(); //ściągamy odpowiednią liczbę zmiennych
                     }
                 }
                 queue.add("w");//dodajemy zmienną wynikową do stosu
-
             }
         }
         if(queue.size() > 1) //na koniec w stosie powinien zostać tylko jeden symbol
-            return new CheckEquationCorrectnessReturn("Błędne równanie: nadmiarowa liczba zmiennych",equationTable,false);
-        return new CheckEquationCorrectnessReturn( "Równanie poprawne",equationTable,true);
+            return new CheckEquationCorrectnessReturn("Błędne równanie: nadmiarowa liczba zmiennych",eqList,false);
+        return new CheckEquationCorrectnessReturn( "Równanie poprawne",eqList,true);
     }
     //Na podstawie listy symboli równania z poprzedniej funkcji budujemy listę pojedynczych działań równania
     public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w)
     {
+
          //w to zmienna indeksująca symbol oznaczający wynik działania
         List<EquationTable> res=new ArrayList<>(); // Lista działań równania np. xor(1,x) &0
         int index=-1; //zmienna indeksująca listę
@@ -156,7 +135,7 @@ public class ParseFunctions {
     public static void printAllMatches(int base, List<Integer> number, EquationTable variables, Algebra algebra,CnfFileHelper cnfFileHelper) {
         if (!number.contains(-1)) { // jeśli nie ma już niewiadomych cyfr
             int decimalNumber = decodeNumber(number, algebra.getCardinality()); // oblicz wartość liczby w systemie dziesiętnym
-            char c = ' ';
+            char c;
             StringBuilder s= new StringBuilder();
             for (int j = 0; j < number.size(); j++) {
                 c = variables.getVariables().get(j).charAt(0);
@@ -191,7 +170,7 @@ public class ParseFunctions {
     public static void equationToCNF(List<EquationTable> eq,Algebra algebra,CnfFileHelper cnfFileHelper)
     {
         for(int i=eq.size()-1;i>=0;i--) {
-            String s="";
+            String s;
             boolean hasVariable= false;
             EquationTable row=eq.get(i); //pobieramy działanie
             List<Integer> intEQ=new ArrayList<>();
