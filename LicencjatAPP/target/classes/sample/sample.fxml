@@ -42,7 +42,7 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"  />
             </rowConstraints>
             <children>
-                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Witaj w aplikacji, równania podaj formie f(x,y)" textAlignment="CENTER" wrappingWidth="588.6574401855469" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Witaj w aplikacji, równania podaj formie f(x,y), kolejne równania podaj po znaku ';'" textAlignment="CENTER" wrappingWidth="588.6574401855469" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                     <font>
                         <Font size="16.0" />
                     </font>
