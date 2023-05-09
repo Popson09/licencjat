@@ -9,7 +9,7 @@ public class ParseFunctions {
         EquationSymbols symbol; //pomocniczy enum
         Queue<String> queue = new PriorityQueue<>(); //kolejka nadzorująca ilość zmiennych
         StringBuilder s;
-        equation=equation.replaceAll("\\s+", "");
+        equation=equation.replaceAll("\\s+", ""); //trim na wszystkie znaki białe
         List<String> eqList =new ArrayList<>(Arrays.asList(equation.split("[() ,]+")));//lista z przekształconym równaniem
         int opIndex = 0;
         //wstępnie obrobione równanie sprawdzamy, pod względem poprawności z algebrą
@@ -63,12 +63,19 @@ public class ParseFunctions {
     //Na podstawie listy symboli równania z poprzedniej funkcji budujemy listę pojedynczych działań równania
     public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w)
     {
-
          //w to zmienna indeksująca symbol oznaczający wynik działania
         List<EquationTable> res=new ArrayList<>(); // Lista działań równania np. xor(1,x) &0
         int index=-1; //zmienna indeksująca listę
         boolean opFind;
         String s;
+        if(eq.size()==1)
+        {
+            res.add(new EquationTable(w));
+            res.get(0).setOpName("&&");
+            res.get(0).setArity(0);
+            res.get(0).getVariables().add(eq.get(0));
+            return res;
+        }
         for (String value : eq) {
             opFind = false;
             s = value; //pobieramy pojedynczy symbol równania
@@ -78,8 +85,8 @@ public class ParseFunctions {
                         index++; //zwiększam indeks listy
                         res.add(new EquationTable(w));
                         w++; //zwiększam indeks numeracji działania
-                        res.get(index).setOpName(s); //wrzucam do tablicy nazwę operacji i ilość argumentów
-                        res.get(index).setArity(algebra.getOperations().get(j).getArity());
+                        res.get(0).setOpName(s); //wrzucam do tablicy nazwę operacji i ilość argumentów
+                        res.get(0).setArity(algebra.getOperations().get(j).getArity());
                     } else {
                         int a = index;
                         while (res.get(a).getVariables().size() == res.get(a).getArity()) //jeżeli jest to zagnieżdżona funkcja szukam jej początku
@@ -173,6 +180,13 @@ public class ParseFunctions {
             String s;
             boolean hasVariable= false;
             EquationTable row=eq.get(i); //pobieramy działanie
+            if(row.getOpName().equals("&&"))
+            {
+                getOneFromAll(algebra,row.getResult(),cnfFileHelper);
+
+                cnfFileHelper.line.add((cnfFileHelper.variableCode.indexOf(row.getResult()+"_"+row.getVariables().get(0))+1) +" 0");
+                continue;
+            }
             List<Integer> intEQ=new ArrayList<>();
             for(int j=0;j<row.getVariables().size();j++) {
 
@@ -190,6 +204,7 @@ public class ParseFunctions {
                 else
                     intEQ.add(Integer.parseInt(s));//przepisuje stałą dla funkcji rekurencyjnej
             }
+            getOneFromAll(algebra,row.getResult(),cnfFileHelper);
             if(!hasVariable) //funkcja ma same stałe wiec po prostu wybieram odpowiednią zmienną
             {
                 int h=decodeNumber(intEQ, algebra.getCardinality());
@@ -197,21 +212,13 @@ public class ParseFunctions {
                 {
                     if(Objects.equals(algebra.getOperations().get(b).getOpName(), row.getOpName()))
                     {
-                        if(!cnfFileHelper.variableCode.contains(row.getResult() + "_0"))
-                        {
-                            for(int z=0;z< algebra.getCardinality();z++) //generowanie zmiennych, aby prze-indeksować zmienne (zabezpieczenie przy zagnieżdżonym działaniu bez zmiennych)
-                                cnfFileHelper.variableCode.add(row.getResult()+"_"+z);
-                        }
                         cnfFileHelper.line.add((cnfFileHelper.variableCode.indexOf(row.getResult() + '_' + algebra.getOperations().get(b).getOpTable().get(h))+1) +" 0");
                         break;
                     }
                 }
             }
             else
-            {
-                getOneFromAll(algebra,row.getResult(),cnfFileHelper);
                 printAllMatches(algebra.getCardinality(),intEQ,row,algebra,cnfFileHelper);
-            }
         }
     }
     //spinam wszystkie funkcje tworzące formułę

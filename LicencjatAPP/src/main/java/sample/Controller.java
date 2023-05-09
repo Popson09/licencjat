@@ -4,7 +4,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -31,12 +35,39 @@ public class Controller {
     private  ShowFileController showFileController;
     boolean flag=false;
     boolean statusFlag=false;
+    List<TextField> textFields=new ArrayList<>();
+    List<HBox> hBoxes= new ArrayList<>();
     @FXML
-    TextField leftSiteText;
+    VBox vbox;
     @FXML
-    TextField rightSiteText;
+    HBox hbox;
+    @FXML
+    TextField eq1;
+    @FXML
+    Button addButton;
     @FXML
     Text checkResultText;
+    public void addEq() {
+        HBox hBox= new HBox();
+        hBox.setPrefSize(600,50);
+        TextField textField=new TextField();
+        textField.setPrefSize(375,50);
+        textFields.add(textField);
+        Button removeButton= new Button();
+        removeButton.setText("Usuń równanie");
+        removeButton.setPrefSize(100,50);
+        removeButton.setOnAction(actionEvent -> {
+            textFields.remove(textField);
+            vbox.getChildren().remove(hBox);
+            hBoxes.remove(hBox);
+            if (hBoxes.size()==0)
+                hbox.getChildren().add(addButton);
+            else if (hBoxes.get(hBoxes.size()-1).getChildren().size()==2)
+                hBoxes.get(hBoxes.size()-1).getChildren().add(addButton);});
+        hBox.getChildren().addAll(textField,removeButton,addButton);
+        hBoxes.add(hBox);
+        vbox.getChildren().add(hBox);
+    }
     public void parseFile() {
         algebra.clear();
         algebra.isLoad = true;
@@ -85,59 +116,81 @@ public class Controller {
             e.printStackTrace();
         }
     }
+    boolean checkEQ(List<CheckEquationCorrectnessReturn> left,List<CheckEquationCorrectnessReturn> right,StringBuilder leftMessage,StringBuilder rightMessage,String eq,int i)
+    {
+        boolean fl=true;
+        left.add(ParseFunctions.checkEquationCorrectness(algebra, eq.split("=")[0]));
+        right.add(ParseFunctions.checkEquationCorrectness(algebra, eq.split("=")[1]));
+        if(!left.get(0).isCorrect||!right.get(0).isCorrect)
+            fl=false;
+        leftMessage.append("Równanie ").append(i+1).append(": ").append(left.get(i).message).append("\n");
+        rightMessage.append("Równanie ").append(i+1).append(": ").append(right.get(i).message).append("\n");
+        return fl;
+    }
     @FXML
     void checkText() {
         if (!algebra.isLoad) {
+            checkResultText.setStyle("-fx-text-fill: red;");
             checkResultText.setText("Nie wczytałeś ciała algebry!");
             return;
         }
         statusFlag=true;
-        String ls=leftSiteText.getText();
-        String rs = rightSiteText.getText();
-        String [] lsTable=ls.split(";");
-        String [] rsTable=rs.split(";");
-        if (ls.equals("") || rs.equals(""))
-            checkResultText.setText("Nie podałeś równania!");
-        else if (lsTable.length!= rsTable.length)
-            checkResultText.setText("Podałeś niezgodną liczbę równań!");
-        else
+        String eq1Text = eq1.getText();
+
+        if (eq1Text.equals(""))
         {
-            StringBuilder leftMessage= new StringBuilder();
-            StringBuilder rightMessage= new StringBuilder();
+            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setText("Nie podałeś równania!");
+            return;
+        }
+        StringBuilder leftMessage= new StringBuilder();
+        StringBuilder rightMessage= new StringBuilder();
+        left.clear();
+        right.clear();
+        if(eq1Text.split("=").length!=2)
+        {
+            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setText("Nie podałeś znaku równości!");
+            return;
+        }
+        statusFlag=checkEQ(left,right,leftMessage,rightMessage,eq1Text,0);
 
-            for(int i=0;i< lsTable.length;i++)
+        for (int i=0;i<textFields.size();i++) {
+            if(textFields.get(i).getText().split("=").length!=2)
             {
-                left.add(i,ParseFunctions.checkEquationCorrectness(algebra, lsTable[i]));
-                right.add(i,ParseFunctions.checkEquationCorrectness(algebra, rsTable[i]));
-                if(!left.get(i).isCorrect||!right.get(i).isCorrect)
-                    statusFlag=false;
-                leftMessage.append("Równanie ").append(i).append(": ").append(left.get(i).message).append("\n");
-                rightMessage.append("Równanie ").append(i).append(": ").append(right.get(i).message).append("\n");
+                checkResultText.setStyle("-fx-text-fill: red;");
+                checkResultText.setText("Nie podałeś znaku równości!");
+                return;
             }
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
-                Parent root = loader.load();
-
-                // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
-                showFileController = loader.getController();
-                showFileController.showEqStatus(leftMessage.toString(),rightMessage.toString());
-
-                // Utwórz nowe okno
-                Stage noweOkno = new Stage();
-                noweOkno.setScene(new Scene(root));
-                noweOkno.show();
+            statusFlag = checkEQ(left, right, leftMessage, rightMessage, textFields.get(i).getText(),i+1);
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
+            Parent root = loader.load();
+            // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
+            showFileController = loader.getController();
+            showFileController.showEqStatus(leftMessage.toString(),rightMessage.toString());
+            // Utwórz nowe okno
+            Stage noweOkno = new Stage();
+            noweOkno.setTitle("Equation status");
+            noweOkno.setScene(new Scene(root));
+            noweOkno.show();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            if(statusFlag)
-                checkResultText.setText("Równania Poprawne");
-            else
-                checkResultText.setText("Równania Niepoprawne");
+        if(statusFlag) {
+            checkResultText.setStyle("-fx-text-fill: green;");
+            checkResultText.setText("Równania Poprawne");
         }
+        else {
+            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setText("Równania Niepoprawne");
+        }
+
     }
     public void showReadAlgebra()  {
         if (!algebra.isLoad) {
+            checkResultText.setStyle("-fx-text-fill: red;");
             checkResultText.setText("Nie wczytałeś ciała algebry!");
             return;
         }
@@ -151,6 +204,7 @@ public class Controller {
 
             // Utwórz nowe okno
             Stage noweOkno = new Stage();
+            noweOkno.setTitle("Algebra file");
             noweOkno.setScene(new Scene(root));
             noweOkno.show();
         } catch (IOException e) {
@@ -161,11 +215,20 @@ public class Controller {
     public void CNFreduction() {
         int w=0;
 
-        if (!statusFlag)
+        if (!statusFlag) {
+            checkResultText.setStyle("-fx-text-fill: red;");
             checkResultText.setText("Podaj poprawne równania zanim przejdziesz do redukcji!");
+        }
         else
         {
             cnfFileHelper.clear();
+            for(int i=0;i<equationLeft.size();i++)
+            {
+                equationLeft.get(i).clear();
+                equationRight.get(i).clear();
+            }
+            equationLeft.clear();
+            equationRight.clear();
             for(int i=0;i< left.size();i++)
             {
                 equationLeft.add(new ArrayList<>());
@@ -197,8 +260,10 @@ public class Controller {
                     fileWriter.write(element + System.lineSeparator());
                 }
                 fileWriter.close();
+                checkResultText.setStyle("-fx-text-fill: green;");
                 checkResultText.setText("Redukcja wykonana poprawnie " );
             } catch (IOException e) {
+                checkResultText.setStyle("-fx-text-fill: red;");
                 checkResultText.setText("Wystąpił błąd podczas zapisu do pliku " + nazwaPliku);
                 e.printStackTrace();
             }
@@ -226,6 +291,7 @@ public class Controller {
                 // Sprawdź, czy problem jest spełnialny
                 if (satisfiable)
                 {
+                    checkResultText.setStyle("-fx-text-fill: green;");
                     checkResultText.setText("Znaleziono spełnialne przypisanie zmiennych, znajdują się w pliku results.txt");
                     String nazwaPliku = "result.txt";
                     File plik = new File(nazwaPliku);
@@ -259,6 +325,7 @@ public class Controller {
                         showFileController.showRes(s.toString());
                         // Utwórz nowe okno
                         Stage noweOkno = new Stage();
+                        noweOkno.setTitle("Result Window");
                         noweOkno.setScene(new Scene(root));
                         noweOkno.show();
                     } catch (IOException e) {
@@ -266,13 +333,19 @@ public class Controller {
                     }
                 }
                 else
+                {
+                    checkResultText.setStyle("-fx-text-fill: red;");
                     checkResultText.setText("Nie znaleziono spełnialnego przypisania zmiennych.");
+                }
+
             } catch (ContradictionException | TimeoutException | ParseFormatException | IOException e) {
                 throw new RuntimeException(e);}
             flag=false;
         }
-        else
+        else {
+            checkResultText.setStyle("-fx-text-fill: red;");
             checkResultText.setText("Nie wykonałeś redukcji!");
+        }
     }
 
     private void eqOutput(StringBuilder s, int i, List<List<EquationTable>> equationLeft) {
@@ -280,4 +353,6 @@ public class Controller {
             s.append(equationLeft.get(i).get(j).getOpName()).append(' ').append(equationLeft.get(i).get(j).getVariables()).append(' ').append(equationLeft.get(i).get(j).getResult()).append('\n');
         s.append("-------------------------\n");
     }
+
+
 }
