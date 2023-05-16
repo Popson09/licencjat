@@ -36,17 +36,17 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
         </GridPane>
-          <Text layoutX="215.0" layoutY="30.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Witaj w aplikacji, równania podaj formie f(x,y), " textAlignment="CENTER" wrappingWidth="570.0">
+          <Text layoutX="215.0" layoutY="30.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Witaj w aplikacji, równania podaj formie f(x,y), po każdej edycji równania sprawdź jego poprawność zanim przejdziesz do redukcji" textAlignment="CENTER" wrappingWidth="570.0">
               <font>
                   <Font size="16.0" />
               </font>
           </Text>
-          <Text fx:id="checkResultText" fill="#29c44d" layoutX="215.0" layoutY="570.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="570.0">
+          <Text fx:id="checkResultText"  layoutX="215.0" layoutY="570.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="570.0">
               <font>
                   <Font size="16.0" />
               </font>
           </Text>
-      <VBox fx:id="vbox" layoutX="200.0" layoutY="30.0" prefHeight="520.0" prefWidth="600.0" >
+      <VBox fx:id="vbox" layoutX="200.0" layoutY="45.0" prefHeight="520.0" prefWidth="600.0" >
          <children>
             <HBox fx:id="hbox" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="50.0" prefWidth="600.0">
                <children>
