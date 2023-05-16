@@ -184,6 +184,27 @@ public class ParseFunctions {
             {
                 getOneFromAll(algebra,row.getResult(),cnfFileHelper);
 
+
+                char c=row.getVariables().get(0).charAt(0);
+                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                {
+                    if((!cnfFileHelper.usedVariables.contains(c)&&row.getVariables().get(0).length()==1)){ //sprawdzenie, czy zmienna jest duplikatem
+                        cnfFileHelper.usedVariables.add(c);
+                        getOneFromAll(algebra,row.getVariables().get(0),cnfFileHelper);
+
+                    }
+                    int leftRIndex=cnfFileHelper.variableCode.indexOf(row.getVariables().get(0)+"_0");
+                    int rightRIndex=cnfFileHelper.variableCode.indexOf(row.getResult()+"_0");
+                    for(int k=0;k< algebra.getCardinality();k++)
+                    {
+                        cnfFileHelper.line.add("-"+ (leftRIndex + k+1)+" "+(rightRIndex + k+1)+" 0");
+                        cnfFileHelper.line.add((leftRIndex + k+1)+" -"+(rightRIndex + k+1)+" 0");
+                    }
+
+                    continue;
+
+                }
+
                 cnfFileHelper.line.add((cnfFileHelper.variableCode.indexOf(row.getResult()+"_"+row.getVariables().get(0))+1) +" 0");
                 continue;
             }

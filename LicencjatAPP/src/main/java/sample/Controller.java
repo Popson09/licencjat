@@ -9,6 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -130,7 +131,7 @@ public class Controller {
     @FXML
     void checkText() {
         if (!algebra.isLoad) {
-            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setFill(Color.valueOf("#FF0000"));
             checkResultText.setText("Nie wczytałeś ciała algebry!");
             return;
         }
@@ -139,8 +140,9 @@ public class Controller {
 
         if (eq1Text.equals(""))
         {
-            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setFill(Color.valueOf("#FF0000"));
             checkResultText.setText("Nie podałeś równania!");
+            statusFlag=false;
             return;
         }
         StringBuilder leftMessage= new StringBuilder();
@@ -149,8 +151,9 @@ public class Controller {
         right.clear();
         if(eq1Text.split("=").length!=2)
         {
-            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setFill(Color.valueOf("#FF0000"));
             checkResultText.setText("Nie podałeś znaku równości!");
+            statusFlag=false;
             return;
         }
         statusFlag=checkEQ(left,right,leftMessage,rightMessage,eq1Text,0);
@@ -158,7 +161,7 @@ public class Controller {
         for (int i=0;i<textFields.size();i++) {
             if(textFields.get(i).getText().split("=").length!=2)
             {
-                checkResultText.setStyle("-fx-text-fill: red;");
+                checkResultText.setFill(Color.valueOf("#FF0000"));
                 checkResultText.setText("Nie podałeś znaku równości!");
                 return;
             }
@@ -179,18 +182,18 @@ public class Controller {
                 e.printStackTrace();
             }
         if(statusFlag) {
-            checkResultText.setStyle("-fx-text-fill: green;");
+            checkResultText.setFill(Color.valueOf("#00FF00"));
             checkResultText.setText("Równania Poprawne");
         }
         else {
-            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setFill(Color.valueOf("#FF0000"));
             checkResultText.setText("Równania Niepoprawne");
         }
 
     }
     public void showReadAlgebra()  {
         if (!algebra.isLoad) {
-            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setFill(Color.valueOf("#FF0000"));
             checkResultText.setText("Nie wczytałeś ciała algebry!");
             return;
         }
@@ -216,7 +219,7 @@ public class Controller {
         int w=0;
 
         if (!statusFlag) {
-            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setFill(Color.valueOf("#FF0000"));
             checkResultText.setText("Podaj poprawne równania zanim przejdziesz do redukcji!");
         }
         else
@@ -240,7 +243,7 @@ public class Controller {
                 ParseFunctions.doCNF(equationLeft.get(i),equationRight.get(i),algebra,cnfFileHelper);
             }
 
-            flag=true;
+
             String nazwaPliku = "reduction.txt";
             File plik = new File(nazwaPliku);
             try {
@@ -260,10 +263,12 @@ public class Controller {
                     fileWriter.write(element + System.lineSeparator());
                 }
                 fileWriter.close();
-                checkResultText.setStyle("-fx-text-fill: green;");
+                checkResultText.setFill(Color.valueOf("#00FF00"));
                 checkResultText.setText("Redukcja wykonana poprawnie " );
+                flag=true;
             } catch (IOException e) {
-                checkResultText.setStyle("-fx-text-fill: red;");
+                flag=false;
+                checkResultText.setFill(Color.valueOf("#FF0000"));
                 checkResultText.setText("Wystąpił błąd podczas zapisu do pliku " + nazwaPliku);
                 e.printStackTrace();
             }
@@ -272,17 +277,17 @@ public class Controller {
 
     public void runSatSolver()  {
 
-        StringBuilder s=new StringBuilder();
-        for(int i=0;i<equationLeft.size();i++)
-        {
-            s.append("-------------------------\n");
-            eqOutput(s, i, equationLeft);
-            eqOutput(s, i, equationRight);
-            s.append(equationLeft.get(i).get(0).getResult()).append(" = ").append(equationRight.get(i).get(0).getResult()).append('\n');
-        }
-        s.append("-------------------------\n\nWynik:\n\n");
         if(flag)
         {
+            StringBuilder s=new StringBuilder();
+            for(int i=0;i<equationLeft.size();i++)
+            {
+                s.append("-------------------------\n");
+                eqOutput(s, i, equationLeft);
+                eqOutput(s, i, equationRight);
+                s.append(equationLeft.get(i).get(0).getResult()).append(" = ").append(equationRight.get(i).get(0).getResult()).append('\n');
+            }
+            s.append("-------------------------\n\nWynik:\n\n");
             try{
                 ISolver solver = SolverFactory.newDefault();
                 DimacsReader reader = new DimacsReader(solver);
@@ -291,7 +296,7 @@ public class Controller {
                 // Sprawdź, czy problem jest spełnialny
                 if (satisfiable)
                 {
-                    checkResultText.setStyle("-fx-text-fill: green;");
+                    checkResultText.setFill(Color.valueOf("#00FF00"));
                     checkResultText.setText("Znaleziono spełnialne przypisanie zmiennych, znajdują się w pliku results.txt");
                     String nazwaPliku = "result.txt";
                     File plik = new File(nazwaPliku);
@@ -334,16 +339,15 @@ public class Controller {
                 }
                 else
                 {
-                    checkResultText.setStyle("-fx-text-fill: red;");
+                    checkResultText.setFill(Color.valueOf("#FF0000"));
                     checkResultText.setText("Nie znaleziono spełnialnego przypisania zmiennych.");
                 }
 
             } catch (ContradictionException | TimeoutException | ParseFormatException | IOException e) {
                 throw new RuntimeException(e);}
-            flag=false;
         }
         else {
-            checkResultText.setStyle("-fx-text-fill: red;");
+            checkResultText.setFill(Color.valueOf("#FF0000"));
             checkResultText.setText("Nie wykonałeś redukcji!");
         }
     }
