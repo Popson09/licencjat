@@ -13,7 +13,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
+import org.sat4j.tools.ModelIterator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -40,6 +42,8 @@ public class Controller {
     List<HBox> hBoxes= new ArrayList<>();
     @FXML
     VBox vbox;
+    @FXML
+    TextField eqCount;
     @FXML
     HBox hbox;
     @FXML
@@ -244,7 +248,7 @@ public class Controller {
             }
 
 
-            String nazwaPliku = "reduction.txt";
+            String nazwaPliku = "reduction.cnf";
             File plik = new File(nazwaPliku);
             try {
                 if(plik.createNewFile()) {
@@ -272,90 +276,85 @@ public class Controller {
                 checkResultText.setText("Wystąpił błąd podczas zapisu do pliku " + nazwaPliku);
                 e.printStackTrace();
             }
-        }
-    }
-
-    public void runSatSolver()  {
-
-        if(flag)
-        {
             StringBuilder s=new StringBuilder();
             for(int i=0;i<equationLeft.size();i++)
             {
-                s.append("-------------------------\n");
+                s.append("Równanie ").append(i+1).append(": Strona Lewa:\n");
                 eqOutput(s, i, equationLeft);
+                s.append("Strona Prawa:\n");
                 eqOutput(s, i, equationRight);
-                s.append(equationLeft.get(i).get(0).getResult()).append(" = ").append(equationRight.get(i).get(0).getResult()).append('\n');
+                s.append("Równoważność stron: ").append(equationLeft.get(i).get(0).getResult()).append(" = ").append(equationRight.get(i).get(0).getResult()).append('\n');
+                s.append("-------------------------\n");
             }
-            s.append("-------------------------\n\nWynik:\n\n");
             try{
                 ISolver solver = SolverFactory.newDefault();
                 DimacsReader reader = new DimacsReader(solver);
-                reader.parseInstance("reduction.txt");
+                reader.parseInstance("reduction.cnf");
+                ModelIterator modelIterator= new ModelIterator(solver);
                 boolean satisfiable = solver.isSatisfiable();
+                int count=0,x=Integer.parseInt(eqCount.getText());
+                eqCount.setText("1");
                 // Sprawdź, czy problem jest spełnialny
-                if (satisfiable)
+                while (modelIterator.isSatisfiable()&&count<x)
                 {
-                    checkResultText.setFill(Color.valueOf("#00FF00"));
-                    checkResultText.setText("Znaleziono spełnialne przypisanie zmiennych, znajdują się w pliku results.txt");
-                    String nazwaPliku = "result.txt";
-                    File plik = new File(nazwaPliku);
-                    try {
-                        if(plik.createNewFile()) {
-                            System.out.println("Utworzono plik " + nazwaPliku);
-                        } else {
-                            System.out.println("Plik " + nazwaPliku + " już istnieje");
-                        }
-                        FileWriter fileWriter = new FileWriter(plik);
-                        for (int i = 1; i <= solver.nVars(); i++)
+                    StringBuilder var=new StringBuilder();
+                    StringBuilder res= new StringBuilder();
+                     VecInt arr= new VecInt(new int[]{});
+
+                    for (int i = 1; i <= solver.nVars(); i++)
+                    {
+                        boolean b=modelIterator.model(i);
+                        arr.push(b? -i: i);
+                        if(b)
                         {
-                            fileWriter.write(cnfFileHelper.variableCode.get(i-1) +" = " + solver.model(i)+ System.lineSeparator());
-                            if(solver.model(i))
-                            {
-                                String []s1 =cnfFileHelper.variableCode.get(i-1).split("_");
-                                s.append(s1[0]).append("=").append(s1[1]).append('\n');
 
-                            }
+                            String []s1 =cnfFileHelper.variableCode.get(i-1).split("_");
+                            if(s1[0].charAt(0)=='&')
+                                res.append(s1[0]).append("=").append(s1[1]).append("| ");
+                            else
+                                var.append(s1[0]).append("=").append(s1[1]).append("| ");
                         }
 
-                        fileWriter.close();
-                    }catch (IOException e) {
-                        throw new RuntimeException(e);
                     }
-                    try {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
-                        Parent root = loader.load();
-                        // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
-                        showFileController = loader.getController();
-                        showFileController.showRes(s.toString());
-                        // Utwórz nowe okno
-                        Stage noweOkno = new Stage();
-                        noweOkno.setTitle("Result Window");
-                        noweOkno.setScene(new Scene(root));
-                        noweOkno.show();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    solver.addClause(arr);
+                    s.append("Rozwiązanie ").append(count+1).append('\n').append(var).append('\n').append(res).append("\n-------------------------\n");;
+                    count++;
                 }
-                else
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("showFile.fxml"));
+                    Parent root = loader.load();
+                    // Uzyskaj kontroler dla nowego okna i przekaż mu jedną klasę
+                    showFileController = loader.getController();
+                    showFileController.showRes(s.toString());
+                    // Utwórz nowe okno
+                    Stage noweOkno = new Stage();
+                    noweOkno.setTitle("Result Window");
+                    noweOkno.setScene(new Scene(root));
+                    noweOkno.show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if(count==0)
                 {
                     checkResultText.setFill(Color.valueOf("#FF0000"));
                     checkResultText.setText("Nie znaleziono spełnialnego przypisania zmiennych.");
+                }
+                else
+                {
+                    checkResultText.setFill(Color.valueOf("#00FF00"));
+                    checkResultText.setText("Znaleziono spełnialne przypisanie zmiennych");
                 }
 
             } catch (ContradictionException | TimeoutException | ParseFormatException | IOException e) {
                 throw new RuntimeException(e);}
         }
-        else {
-            checkResultText.setFill(Color.valueOf("#FF0000"));
-            checkResultText.setText("Nie wykonałeś redukcji!");
-        }
     }
+
 
     private void eqOutput(StringBuilder s, int i, List<List<EquationTable>> equationLeft) {
         for (int j = 0; j< equationLeft.get(i).size(); j++)
-            s.append(equationLeft.get(i).get(j).getOpName()).append(' ').append(equationLeft.get(i).get(j).getVariables()).append(' ').append(equationLeft.get(i).get(j).getResult()).append('\n');
-        s.append("-------------------------\n");
+            s.append("(").append(equationLeft.get(i).get(j).getOpName()).append(' ').append(equationLeft.get(i).get(j).getVariables()).append(' ').append(equationLeft.get(i).get(j).getResult()).append(") | ");
+        s.append("\n-------------------------\n");
     }
 
 

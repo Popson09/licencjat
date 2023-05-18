@@ -183,8 +183,6 @@ public class ParseFunctions {
             if(row.getOpName().equals("&&"))
             {
                 getOneFromAll(algebra,row.getResult(),cnfFileHelper);
-
-
                 char c=row.getVariables().get(0).charAt(0);
                 if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
                 {
@@ -200,11 +198,8 @@ public class ParseFunctions {
                         cnfFileHelper.line.add("-"+ (leftRIndex + k+1)+" "+(rightRIndex + k+1)+" 0");
                         cnfFileHelper.line.add((leftRIndex + k+1)+" -"+(rightRIndex + k+1)+" 0");
                     }
-
                     continue;
-
                 }
-
                 cnfFileHelper.line.add((cnfFileHelper.variableCode.indexOf(row.getResult()+"_"+row.getVariables().get(0))+1) +" 0");
                 continue;
             }
