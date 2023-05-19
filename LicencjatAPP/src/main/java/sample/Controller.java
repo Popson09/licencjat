@@ -354,7 +354,7 @@ public class Controller {
     private void eqOutput(StringBuilder s, int i, List<List<EquationTable>> equationLeft) {
         for (int j = 0; j< equationLeft.get(i).size(); j++)
             s.append("(").append(equationLeft.get(i).get(j).getOpName()).append(' ').append(equationLeft.get(i).get(j).getVariables()).append(' ').append(equationLeft.get(i).get(j).getResult()).append(") | ");
-        s.append("\n-------------------------\n");
+        s.append("\n");
     }
 
 
