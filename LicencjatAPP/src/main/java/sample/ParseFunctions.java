@@ -25,7 +25,7 @@ public class ParseFunctions {
             }
             if (symbol == EquationSymbols.empty) { //symbol nie jest operacją, sprawdzamy, czy jest zmienną lub stałą
                 char c = s.charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))&& s.length() == 1)
+                if ((c >= 'a' && c <= 'z')&& s.length() == 1)
                     symbol = EquationSymbols.variable;//jednoliterowy string, który nie jest operatorem jest zmienną
                 else if (c>='0'&&c<='9') {
                     try //Zabezpieczenie na wypadek, gdyby ktoś wprowadził symbol np. 2x
@@ -71,7 +71,7 @@ public class ParseFunctions {
         if(eq.size()==1)
         {
             res.add(new EquationTable(w));
-            res.get(0).setOpName("&&");
+            res.get(0).setOpName("WW");
             res.get(0).setArity(0);
             res.get(0).getVariables().add(eq.get(0));
             return res;
@@ -91,7 +91,7 @@ public class ParseFunctions {
                         int a = index;
                         while (res.get(a).getVariables().size() == res.get(a).getArity()) //jeżeli jest to zagnieżdżona funkcja szukam jej początku
                             a--;
-                        res.get(a).getVariables().add("&" + w); //dodaje wynik działania do listy zmiennych działania, w którym nastąpiło wywołanie
+                        res.get(a).getVariables().add("W" + w); //dodaje wynik działania do listy zmiennych działania, w którym nastąpiło wywołanie
                         res.add(new EquationTable(w));
                         w++;
                         index++;
@@ -146,7 +146,7 @@ public class ParseFunctions {
             StringBuilder s= new StringBuilder();
             for (int j = 0; j < number.size(); j++) {
                 c = variables.getVariables().get(j).charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))||c=='&') { //sprawdzamy, gdzie w oryginalnym działaniu była zmienna
+                if ((c >= 'a' && c <= 'z') ||c=='W') { //sprawdzamy, gdzie w oryginalnym działaniu była zmienna
                     s.append("-").append(cnfFileHelper.variableCode.indexOf(variables.getVariables().get(j) + "_" + number.get(j)) + 1).append(" ");
                 }
             }
@@ -180,11 +180,11 @@ public class ParseFunctions {
             String s;
             boolean hasVariable= false;
             EquationTable row=eq.get(i); //pobieramy działanie
-            if(row.getOpName().equals("&&"))
+            if(row.getOpName().equals("WW"))
             {
                 getOneFromAll(algebra,row.getResult(),cnfFileHelper);
                 char c=row.getVariables().get(0).charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                if (c >= 'a' && c <= 'z')
                 {
                     if((!cnfFileHelper.usedVariables.contains(c)&&row.getVariables().get(0).length()==1)){ //sprawdzenie, czy zmienna jest duplikatem
                         cnfFileHelper.usedVariables.add(c);
@@ -208,7 +208,7 @@ public class ParseFunctions {
 
                 s=row.getVariables().get(j);
                 char c = s.charAt(0);
-                if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))||c=='&')
+                if ((c >= 'a' && c <= 'z') ||c=='W')
                 {
                     hasVariable=true;
                     intEQ.add(-1);//zaznaczam zmienną jako -1 dla funkcji rekurencyjnej

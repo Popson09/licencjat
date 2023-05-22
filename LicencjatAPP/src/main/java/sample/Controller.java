@@ -309,7 +309,7 @@ public class Controller {
                         {
 
                             String []s1 =cnfFileHelper.variableCode.get(i-1).split("_");
-                            if(s1[0].charAt(0)=='&')
+                            if(s1[0].charAt(0)=='W')
                                 res.append(s1[0]).append("=").append(s1[1]).append("| ");
                             else
                                 var.append(s1[0]).append("=").append(s1[1]).append("| ");

@@ -15,7 +15,7 @@ public class EquationTable {
         this.opName = "";
         this.variables = new ArrayList<>();
         this.arity = 0;
-        this.result = "&"+w;
+        this.result = "W"+w;
     }
 
     public String getResult() {
