@@ -179,7 +179,7 @@ public class Controller {
             showFileController.showEqStatus(leftMessage.toString(),rightMessage.toString());
             // Utwórz nowe okno
             Stage noweOkno = new Stage();
-            noweOkno.setTitle("Equation status");
+            noweOkno.setTitle("Poprawność równań");
             noweOkno.setScene(new Scene(root));
             noweOkno.show();
             } catch (IOException e) {
@@ -211,7 +211,7 @@ public class Controller {
 
             // Utwórz nowe okno
             Stage noweOkno = new Stage();
-            noweOkno.setTitle("Algebra file");
+            noweOkno.setTitle("Wczytana Algebra");
             noweOkno.setScene(new Scene(root));
             noweOkno.show();
         } catch (IOException e) {
@@ -328,7 +328,7 @@ public class Controller {
                     showFileController.showRes(s.toString());
                     // Utwórz nowe okno
                     Stage noweOkno = new Stage();
-                    noweOkno.setTitle("Result Window");
+                    noweOkno.setTitle("Wynik programu");
                     noweOkno.setScene(new Scene(root));
                     noweOkno.show();
                 } catch (IOException e) {
