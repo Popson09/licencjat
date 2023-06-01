@@ -57,7 +57,7 @@ public class ParseFunctions {
             }
         }
         if(queue.size() > 1) //na koniec w stosie powinien zostać tylko jeden symbol
-            return new CheckEquationCorrectnessReturn("Błędne równanie: nadmiarowa liczba zmiennych",eqList,false);
+            return new CheckEquationCorrectnessReturn("Błędne równanie: Nadmiarowa liczba zmiennych",eqList,false);
         return new CheckEquationCorrectnessReturn( "Równanie poprawne",eqList,true);
     }
     //Na podstawie listy symboli równania z poprzedniej funkcji budujemy listę pojedynczych działań równania
