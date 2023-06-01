@@ -9,6 +9,7 @@ public class ParseFunctions {
         EquationSymbols symbol; //pomocniczy enum
         Queue<String> queue = new PriorityQueue<>(); //kolejka nadzorująca ilość zmiennych
         StringBuilder s;
+        equation=equation.trim();
         List<String> eqList =new ArrayList<>(Arrays.asList(equation.split("[(),\\s+]+")));//lista z przekształconym równaniem
         int opIndex = 0;
         //wstępnie obrobione równanie sprawdzamy, pod względem poprawności z algebrą
