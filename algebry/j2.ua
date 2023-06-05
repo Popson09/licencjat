@@ -12,9 +12,9 @@
         <opTable>
           <intArray>
             <row r="[0]">0,1,2,3</row>
-            <row r="[1]">1,0,3,2</row>
+            <row r="[1]">1,2,3,0</row>
             <row r="[2]">2,3,0,1</row>
-            <row r="[3]">3,2,1,0</row>         
+            <row r="[3]">3,0,1,2</row>         
           </intArray>
         </opTable>
       </op>
