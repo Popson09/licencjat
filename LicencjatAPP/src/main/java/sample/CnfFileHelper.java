@@ -7,7 +7,7 @@ public class CnfFileHelper { //przechowa format do zapisu formuły do pliku
     String name;
     List<String> line;
 
-    List<Character> usedVariables; //tablica wyłapująca powtórzenia zmiennych
+    List<String> usedVariables; //tablica wyłapująca powtórzenia zmiennych
 
     List<String> variableCode;
 

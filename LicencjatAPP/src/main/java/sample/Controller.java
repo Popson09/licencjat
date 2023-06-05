@@ -25,6 +25,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 import org.sat4j.specs.*;
 import org.sat4j.reader.*;
 
@@ -118,7 +120,7 @@ public class Controller {
                 algebra.setOperationsValue(i, op);//wrzucenie operacji do listy w algebrze
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("NIe znaleziono pliku");
         }
     }
     boolean checkEQ(List<CheckEquationCorrectnessReturn> left,List<CheckEquationCorrectnessReturn> right,StringBuilder leftMessage,StringBuilder rightMessage,String eq,int i)
@@ -220,7 +222,7 @@ public class Controller {
     }
 
     public void CNFreduction() {
-        int w=0;
+        int w=left.size()-1;
 
         if (!statusFlag) {
             checkResultText.setFill(Color.valueOf("#FF0000"));
@@ -240,10 +242,10 @@ public class Controller {
             {
                 equationLeft.add(new ArrayList<>());
                 equationRight.add(new ArrayList<>());
-                equationLeft.set(i,ParseFunctions.getEquationTable(left.get(i).equations,algebra,w));
-                w+=equationLeft.get(i).size();
-                equationRight.set(i,ParseFunctions.getEquationTable(right.get(i).equations,algebra,w));
-                w+=equationRight.get(i).size();
+                equationLeft.set(i,ParseFunctions.getEquationTable(left.get(i).equations,algebra,w,i));
+                w+=equationLeft.get(i).size()-1;
+                equationRight.set(i,ParseFunctions.getEquationTable(right.get(i).equations,algebra,w,i));
+                w+=equationRight.get(i).size()-1;
                 ParseFunctions.doCNF(equationLeft.get(i),equationRight.get(i),algebra,cnfFileHelper);
             }
 

@@ -11,11 +11,11 @@ public class EquationTable {
 
 
 
-    EquationTable( int w) {
+    EquationTable( ) {
         this.opName = "";
         this.variables = new ArrayList<>();
         this.arity = 0;
-        this.result = "W"+w;
+        this.result ="";
     }
 
     public String getResult() {

@@ -61,7 +61,7 @@ public class ParseFunctions {
         return new CheckEquationCorrectnessReturn( "Równanie poprawne",eqList,true);
     }
     //Na podstawie listy symboli równania z poprzedniej funkcji budujemy listę pojedynczych działań równania
-    public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w)
+    public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w, int number)
     {
          //w to zmienna indeksująca symbol oznaczający wynik działania
         List<EquationTable> res=new ArrayList<>(); // Lista działań równania np. xor(1,x) &0
@@ -70,7 +70,8 @@ public class ParseFunctions {
         String s;
         if(eq.size()==1)
         {
-            res.add(new EquationTable(w));
+            res.add(new EquationTable());
+            res.get(0).setResult("W"+number);
             res.get(0).setOpName("WW");
             res.get(0).setArity(0);
             res.get(0).getVariables().add(eq.get(0));
@@ -81,22 +82,22 @@ public class ParseFunctions {
             s = value; //pobieramy pojedynczy symbol równania
             for (int j = 0; j < algebra.getOperations().size(); j++) {
                 if (s.equals(algebra.getOperations().get(j).getOpName())) { //symbol jest operatorem
-                    if (index == -1) {
-                        index++; //zwiększam indeks listy
-                        res.add(new EquationTable(w));
-                        w++; //zwiększam indeks numeracji działania
-                        res.get(0).setOpName(s); //wrzucam do tablicy nazwę operacji i ilość argumentów
-                        res.get(0).setArity(algebra.getOperations().get(j).getArity());
-                    } else {
-                        int a = index;
+
+                    index++; //zwiększam indeks listy
+                    res.add(new EquationTable());
+                    if(index==0)
+                        res.get(index).setResult("W"+number); //lewej i prawej stronie równania przypisuje ten sam numer
+                    else
+                        res.get(index).setResult("W"+w);
+                    w++; //zwiększam indeks numeracji działania
+                    res.get(index).setOpName(s); //wrzucam do tablicy nazwę operacji i ilość argumentów
+                    res.get(index).setArity(algebra.getOperations().get(j).getArity());
+                    if(index!=0)
+                    {
+                        int a = index-1;
                         while (res.get(a).getVariables().size() == res.get(a).getArity()) //jeżeli jest to zagnieżdżona funkcja szukam jej początku
                             a--;
-                        res.get(a).getVariables().add("W" + w); //dodaje wynik działania do listy zmiennych działania, w którym nastąpiło wywołanie
-                        res.add(new EquationTable(w));
-                        w++;
-                        index++;
-                        res.get(index).setArity(algebra.getOperations().get(j).getArity());
-                        res.get(index).setOpName(s);
+                        res.get(a).getVariables().add(res.get(index).getResult());
                     }
                     opFind = true;
                     break;
@@ -180,24 +181,25 @@ public class ParseFunctions {
             String s;
             boolean hasVariable= false;
             EquationTable row=eq.get(i); //pobieramy działanie
+            if(!cnfFileHelper.usedVariables.contains(row.getResult())){ //sprawdzenie, czy zmienna jest duplikatem
+                cnfFileHelper.usedVariables.add(row.getResult());
+                getOneFromAll(algebra,row.getResult(),cnfFileHelper);
+            }
+
+
             if(row.getOpName().equals("WW"))
             {
-                getOneFromAll(algebra,row.getResult(),cnfFileHelper);
                 char c=row.getVariables().get(0).charAt(0);
                 if (c >= 'a' && c <= 'z')
                 {
-                    if((!cnfFileHelper.usedVariables.contains(c)&&row.getVariables().get(0).length()==1)){ //sprawdzenie, czy zmienna jest duplikatem
-                        cnfFileHelper.usedVariables.add(c);
+                    if(!cnfFileHelper.usedVariables.contains(row.getVariables().get(0))){ //sprawdzenie, czy zmienna jest duplikatem
+                        cnfFileHelper.usedVariables.add(row.getVariables().get(0));
                         getOneFromAll(algebra,row.getVariables().get(0),cnfFileHelper);
-
                     }
                     int leftRIndex=cnfFileHelper.variableCode.indexOf(row.getVariables().get(0)+"_0");
                     int rightRIndex=cnfFileHelper.variableCode.indexOf(row.getResult()+"_0");
                     for(int k=0;k< algebra.getCardinality();k++)
-                    {
                         cnfFileHelper.line.add("-"+ (leftRIndex + k+1)+" "+(rightRIndex + k+1)+" 0");
-                        cnfFileHelper.line.add((leftRIndex + k+1)+" -"+(rightRIndex + k+1)+" 0");
-                    }
                     continue;
                 }
                 cnfFileHelper.line.add((cnfFileHelper.variableCode.indexOf(row.getResult()+"_"+row.getVariables().get(0))+1) +" 0");
@@ -212,15 +214,14 @@ public class ParseFunctions {
                 {
                     hasVariable=true;
                     intEQ.add(-1);//zaznaczam zmienną jako -1 dla funkcji rekurencyjnej
-                    if((!cnfFileHelper.usedVariables.contains(c)&&s.length()==1)){ //sprawdzenie, czy zmienna jest duplikatem
-                        cnfFileHelper.usedVariables.add(c);
+                    if(!cnfFileHelper.usedVariables.contains(s)){ //sprawdzenie, czy zmienna jest duplikatem
+                        cnfFileHelper.usedVariables.add(s);
                         getOneFromAll(algebra,s,cnfFileHelper);
                     }
                 }
                 else
                     intEQ.add(Integer.parseInt(s));//przepisuje stałą dla funkcji rekurencyjnej
             }
-            getOneFromAll(algebra,row.getResult(),cnfFileHelper);
             if(!hasVariable) //funkcja ma same stałe wiec po prostu wybieram odpowiednią zmienną
             {
                 int h=decodeNumber(intEQ, algebra.getCardinality());
@@ -242,13 +243,7 @@ public class ParseFunctions {
     {
         equationToCNF(left,algebra,cnfFileHelper);
         equationToCNF(right,algebra,cnfFileHelper);
-        int leftRIndex=cnfFileHelper.variableCode.indexOf(left.get(0).getResult()+"_0");
-        int rightRIndex=cnfFileHelper.variableCode.indexOf(right.get(0).getResult()+"_0");
-        for(int i=0;i< algebra.getCardinality();i++)
-        {
-            cnfFileHelper.line.add("-"+ (leftRIndex + i+1)+" "+(rightRIndex + i+1)+" 0");
-            cnfFileHelper.line.add((leftRIndex + i+1)+" -"+(rightRIndex + i+1)+" 0");
-        }
+
     }
 }
 
