@@ -32,8 +32,7 @@ import org.sat4j.reader.*;
 
 public class Controller {
     private final Algebra algebra = new Algebra();
-    private final List<List<EquationTable>> equationLeft=new ArrayList<>();
-    private final List<List<EquationTable>> equationRight=new ArrayList<>();
+    private final List<EquationTable> equationTables=new ArrayList<>();
     private final List<CheckEquationCorrectnessReturn> left=new ArrayList<>();
     private final List<CheckEquationCorrectnessReturn> right=new ArrayList<>();
     private final CnfFileHelper cnfFileHelper= new CnfFileHelper();
@@ -128,11 +127,28 @@ public class Controller {
         boolean fl=true;
         left.add(ParseFunctions.checkEquationCorrectness(algebra, eq.split("=")[0]));
         right.add(ParseFunctions.checkEquationCorrectness(algebra, eq.split("=")[1]));
-        if(!left.get(0).isCorrect||!right.get(0).isCorrect)
+        if(!left.get(i).isCorrect||!right.get(i).isCorrect)
             fl=false;
         leftMessage.append("Równanie ").append(i+1).append(": ").append(left.get(i).message).append("\n");
         rightMessage.append("Równanie ").append(i+1).append(": ").append(right.get(i).message).append("\n");
         return fl;
+    }
+    boolean checkEqEmpty(String eq)
+    {
+        if (eq.equals(""))
+        {
+            checkResultText.setFill(Color.valueOf("#FF0000"));
+            checkResultText.setText("Zostawiłeś puste pole dla równania!");
+            return false;
+        } else  if(eq.split("=").length!=2)
+        {
+            checkResultText.setFill(Color.valueOf("#FF0000"));
+            checkResultText.setText("Równanie posiada nieprawidłową liczbę znaków równości !");
+           return false;
+
+        }
+        else
+            return true;
     }
     @FXML
     void checkText() {
@@ -142,35 +158,21 @@ public class Controller {
             return;
         }
         statusFlag=true;
-        String eq1Text = eq1.getText();
-
-        if (eq1Text.equals(""))
-        {
-            checkResultText.setFill(Color.valueOf("#FF0000"));
-            checkResultText.setText("Nie podałeś równania!");
-            statusFlag=false;
-            return;
-        }
         StringBuilder leftMessage= new StringBuilder();
         StringBuilder rightMessage= new StringBuilder();
         left.clear();
         right.clear();
-        if(eq1Text.split("=").length!=2)
-        {
-            checkResultText.setFill(Color.valueOf("#FF0000"));
-            checkResultText.setText("Nie podałeś znaku równości!");
-            statusFlag=false;
+        String eq1Text = eq1.getText();
+
+        statusFlag=checkEqEmpty(eq1Text);
+        if (!statusFlag)
             return;
-        }
         statusFlag=checkEQ(left,right,leftMessage,rightMessage,eq1Text,0);
 
         for (int i=0;i<textFields.size();i++) {
-            if(textFields.get(i).getText().split("=").length!=2)
-            {
-                checkResultText.setFill(Color.valueOf("#FF0000"));
-                checkResultText.setText("Nie podałeś znaku równości!");
+            statusFlag=checkEqEmpty(textFields.get(i).getText());
+            if (!statusFlag)
                 return;
-            }
             statusFlag = checkEQ(left, right, leftMessage, rightMessage, textFields.get(i).getText(),i+1);
         }
         try {
@@ -231,23 +233,17 @@ public class Controller {
         else
         {
             cnfFileHelper.clear();
-            for(int i=0;i<equationLeft.size();i++)
-            {
-                equationLeft.get(i).clear();
-                equationRight.get(i).clear();
-            }
-            equationLeft.clear();
-            equationRight.clear();
+            equationTables.clear();
             for(int i=0;i< left.size();i++)
             {
-                equationLeft.add(new ArrayList<>());
-                equationRight.add(new ArrayList<>());
-                equationLeft.set(i,ParseFunctions.getEquationTable(left.get(i).equations,algebra,w,i));
-                w+=equationLeft.get(i).size()-1;
-                equationRight.set(i,ParseFunctions.getEquationTable(right.get(i).equations,algebra,w,i));
-                w+=equationRight.get(i).size()-1;
-                ParseFunctions.doCNF(equationLeft.get(i),equationRight.get(i),algebra,cnfFileHelper);
+                equationTables.addAll(ParseFunctions.getEquationTable(left.get(i).equations,algebra,w,i));
+                System.out.println(equationTables.size());
+                w=left.size()-1+equationTables.size()-1-2*i;
+                equationTables.addAll(ParseFunctions.getEquationTable(right.get(i).equations,algebra,w,i));
+                System.out.println(equationTables.size());
+                w=left.size()-1+equationTables.size()-2*(i+1);
             }
+            ParseFunctions.doCNF(equationTables,algebra,cnfFileHelper);
 
 
             String nazwaPliku = "reduction.cnf";
@@ -279,15 +275,10 @@ public class Controller {
                 e.printStackTrace();
             }
             StringBuilder s=new StringBuilder();
-            for(int i=0;i<equationLeft.size();i++)
-            {
-                s.append("Równanie ").append(i+1).append(": Strona Lewa:\n");
-                eqOutput(s, i, equationLeft);
-                s.append("Strona Prawa:\n");
-                eqOutput(s, i, equationRight);
-                s.append("Równoważność stron: ").append(equationLeft.get(i).get(0).getResult()).append(" = ").append(equationRight.get(i).get(0).getResult()).append('\n');
-                s.append("-------------------------\n");
-            }
+            s.append("Układ równań:\n");
+            for (EquationTable equationTable : equationTables)
+                s.append("(").append(equationTable.getOpName()).append(' ').append(equationTable.getVariables()).append(' ').append(equationTable.getResult()).append(")").append("\n");
+            s.append("\n");
             try{
                 ISolver solver = SolverFactory.newDefault();
                 DimacsReader reader = new DimacsReader(solver);
@@ -353,11 +344,7 @@ public class Controller {
     }
 
 
-    private void eqOutput(StringBuilder s, int i, List<List<EquationTable>> equationLeft) {
-        for (int j = 0; j< equationLeft.get(i).size(); j++)
-            s.append("(").append(equationLeft.get(i).get(j).getOpName()).append(' ').append(equationLeft.get(i).get(j).getVariables()).append(' ').append(equationLeft.get(i).get(j).getResult()).append(") | ");
-        s.append("\n");
-    }
+
 
 
 }

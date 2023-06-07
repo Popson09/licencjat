@@ -17,7 +17,7 @@ public class ShowFileController {
 
     }
     void showEqStatus(String s1,String s2){
-        text.setText("Lewe równania: \n"+s1+"\nPrawe równania: \n"+s2);
+        text.setText("Wielomiany lewostronne równania: \n"+s1+"\nWielomiany prawostronne równania: \n"+s2);
 
     }
 

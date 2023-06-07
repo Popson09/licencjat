@@ -25,22 +25,20 @@ public class ParseFunctions {
             }
             if (symbol == EquationSymbols.empty) { //symbol nie jest operacją, sprawdzamy, czy jest zmienną lub stałą
                 char c = s.charAt(0);
-                if ((c >= 'a' && c <= 'z')&& s.length() == 1)
-                    symbol = EquationSymbols.variable;//jednoliterowy string, który nie jest operatorem jest zmienną
-                else if (c>='0'&&c<='9') {
+                if ((c >= 'a' && c <= 'z'))
+                    symbol = EquationSymbols.variable;
+                else if (c>='0'&&c<='9') { //dowolny ciąg zaczynający się od litery jest zmienną
                     try //Zabezpieczenie na wypadek, gdyby ktoś wprowadził symbol np. 2x
                     {
                         int a = Integer.parseInt(s.toString());
                         if (a >= algebra.getCardinality() || a < 0) //sprawdzamy, czy liczba należy do dziedziny
-                            return new CheckEquationCorrectnessReturn("Błędne równanie: Stała poza zakresem dziedziny", eqList, false);
+                            return new CheckEquationCorrectnessReturn("Błędny wielomian: Stała poza zakresem dziedziny", eqList, false);
                         symbol = EquationSymbols.constant;
                     }
                     catch (Exception e) {
-                        return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",eqList,false);
+                        return new CheckEquationCorrectnessReturn("Błędny wielomian: Niedozwolona nazwa zmiennej",eqList,false);
                     }
                 }
-                else
-                    return new CheckEquationCorrectnessReturn("Błędne równanie: Niedozwolona nazwa zmiennej",eqList,false);
             }
             if (symbol == EquationSymbols.constant || symbol == EquationSymbols.variable)
                 queue.add(s.toString()); //dodajemy liczbę/zmienną do stosu
@@ -48,7 +46,7 @@ public class ParseFunctions {
                 for (int j = 0; j < algebra.getOperations().get(opIndex).getArity(); j++) //znajdujemy liczbę argumentów powiązanych z operacją
                 {
                     if (queue.isEmpty())
-                        return new CheckEquationCorrectnessReturn("Błędne równanie: Pusty stos",eqList,false);//mamy na mało symboli na stosie, czyli równanie złe
+                        return new CheckEquationCorrectnessReturn("Błędny wielomian: Pusty stos",eqList,false);//mamy na mało symboli na stosie, czyli równanie złe
                     else {
                         queue.remove(); //ściągamy odpowiednią liczbę zmiennych
                     }
@@ -57,8 +55,8 @@ public class ParseFunctions {
             }
         }
         if(queue.size() > 1) //na koniec w stosie powinien zostać tylko jeden symbol
-            return new CheckEquationCorrectnessReturn("Błędne równanie: Nadmiarowa liczba zmiennych",eqList,false);
-        return new CheckEquationCorrectnessReturn( "Równanie poprawne",eqList,true);
+            return new CheckEquationCorrectnessReturn("Błędny wielomian: Nadmiarowa liczba zmiennych",eqList,false);
+        return new CheckEquationCorrectnessReturn( "Wielomian poprawny",eqList,true);
     }
     //Na podstawie listy symboli równania z poprzedniej funkcji budujemy listę pojedynczych działań równania
     public static List<EquationTable> getEquationTable(List<String> eq,Algebra algebra,int w, int number)
@@ -175,7 +173,7 @@ public class ParseFunctions {
         }
     }
     //funkcja zarządzająca zamianą na CNF
-    public static void equationToCNF(List<EquationTable> eq,Algebra algebra,CnfFileHelper cnfFileHelper)
+    public static void doCNF (List<EquationTable> eq, Algebra algebra,CnfFileHelper cnfFileHelper)
     {
         for(int i=eq.size()-1;i>=0;i--) {
             String s;
@@ -190,7 +188,7 @@ public class ParseFunctions {
             if(row.getOpName().equals("WW"))
             {
                 char c=row.getVariables().get(0).charAt(0);
-                if (c >= 'a' && c <= 'z')
+                if ((c >= 'a' && c <= 'z') ||c=='W')
                 {
                     if(!cnfFileHelper.usedVariables.contains(row.getVariables().get(0))){ //sprawdzenie, czy zmienna jest duplikatem
                         cnfFileHelper.usedVariables.add(row.getVariables().get(0));
@@ -237,13 +235,6 @@ public class ParseFunctions {
             else
                 printAllMatches(algebra.getCardinality(),intEQ,row,algebra,cnfFileHelper);
         }
-    }
-    //spinam wszystkie funkcje tworzące formułę
-    public static void doCNF (List<EquationTable> left,List<EquationTable> right, Algebra algebra,CnfFileHelper cnfFileHelper)
-    {
-        equationToCNF(left,algebra,cnfFileHelper);
-        equationToCNF(right,algebra,cnfFileHelper);
-
     }
 }
 
