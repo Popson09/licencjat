@@ -321,7 +321,7 @@ public class Controller {
                     showFileController.showRes(s.toString());
                     // Utwórz nowe okno
                     Stage noweOkno = new Stage();
-                    noweOkno.setTitle("Wynik programu");
+                    noweOkno.setTitle("Wynik działania aplikacji");
                     noweOkno.setScene(new Scene(root));
                     noweOkno.show();
                 } catch (IOException e) {
