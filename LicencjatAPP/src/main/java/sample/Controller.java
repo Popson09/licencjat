@@ -237,10 +237,8 @@ public class Controller {
             for(int i=0;i< left.size();i++)
             {
                 equationTables.addAll(ParseFunctions.getEquationTable(left.get(i).equations,algebra,w,i));
-                System.out.println(equationTables.size());
                 w=left.size()-1+equationTables.size()-1-2*i;
                 equationTables.addAll(ParseFunctions.getEquationTable(right.get(i).equations,algebra,w,i));
-                System.out.println(equationTables.size());
                 w=left.size()-1+equationTables.size()-2*(i+1);
             }
             ParseFunctions.doCNF(equationTables,algebra,cnfFileHelper);
