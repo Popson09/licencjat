@@ -55,7 +55,7 @@ public class ParseFunctions {
             }
         }
         if(queue.size() > 1) //na koniec w stosie powinien zostać tylko jeden symbol
-            return new CheckEquationCorrectnessReturn("Błędny wielomian: Nadmiarowa liczba zmiennych",eqList,false);
+            return new CheckEquationCorrectnessReturn("Błędny wielomian: Nadmiarowa liczba argumentów",eqList,false);
         return new CheckEquationCorrectnessReturn( "Wielomian poprawny",eqList,true);
     }
     //Na podstawie listy symboli równania z poprzedniej funkcji budujemy listę pojedynczych działań równania

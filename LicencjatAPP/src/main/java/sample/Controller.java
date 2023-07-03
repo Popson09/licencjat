@@ -232,6 +232,7 @@ public class Controller {
         }
         else
         {
+            long startTime = System.currentTimeMillis();
             cnfFileHelper.clear();
             equationTables.clear();
             for(int i=0;i< left.size();i++)
@@ -248,9 +249,9 @@ public class Controller {
             File plik = new File(nazwaPliku);
             try {
                 if(plik.createNewFile()) {
-                    System.out.println("Utworzono plik " + nazwaPliku);
+                    //System.out.println("Utworzono plik " + nazwaPliku);
                 } else {
-                    System.out.println("Plik " + nazwaPliku + " już istnieje");
+                    //System.out.println("Plik " + nazwaPliku + " już istnieje");
                 }
 
                 FileWriter fileWriter = new FileWriter(plik);
@@ -338,6 +339,11 @@ public class Controller {
 
             } catch (ContradictionException | TimeoutException | ParseFormatException | IOException e) {
                 throw new RuntimeException(e);}
+            long endTime = System.currentTimeMillis();
+            long executionTime = endTime - startTime;
+
+            System.out.println("Algebra "+algebra.getAlgName()+"; Czas " + executionTime + "ms;" +" klauzule "+ cnfFileHelper.line.size()+ "; zmienne "+cnfFileHelper.variableCode.size()+ "; układ "+ equationTables.size()+"; Tabela"+algebra.getOperations().get(0).getOpTable().size()) ;
+
         }
     }
 
